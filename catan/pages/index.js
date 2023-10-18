@@ -1,5 +1,7 @@
+import CreateGame from "components/CreateGame";
+
 const HomePage = () => {
-  return <h2>Catan</h2>;
+  return <CreateGame />;
 };
 
 export default HomePage;
