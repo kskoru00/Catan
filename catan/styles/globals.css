@@ -4,6 +4,13 @@
   --brown: #c4a484;
   --dark-brown: #6f4e37;
   --red: #8b0000;
+  --blue: #191970;
+  --orange: #f28c28;
+  --yellow: #ffbf00;
+  --dark-orange: #cc5500;
+  --green: #4f7942;
+  --light-green: #93c572;
+  --gray: #a9a9a9;
 }
 * {
   box-sizing: border-box;

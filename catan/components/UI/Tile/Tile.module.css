@@ -1,0 +1,36 @@
+.container {
+  position: relative;
+}
+.polygon {
+  width: 100px;
+  height: calc(100px * 1.1547);
+  display: inline-block;
+  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+  background-color: var(--dark-brown);
+}
+
+.orange {
+  background-color: var(--dark-orange);
+}
+.gray {
+  background-color: var(--gray);
+}
+.yellow {
+  background-color: var(--yellow);
+}
+.green {
+  background-color: var(--green);
+}
+.brown {
+  background-color: var(--brown);
+}
+.lightGreen {
+  background-color: var(--light-green);
+}
+.numberContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+}

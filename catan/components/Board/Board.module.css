@@ -1,0 +1,27 @@
+.board {
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.wrapper {
+  height: 500px;
+  width: 100vw;
+  margin-bottom: 108px;
+  display: flex;
+  justify-content: center;
+}
+.container {
+  width: 500px;
+  position: relative;
+}
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

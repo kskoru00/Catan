@@ -1,5 +1,7 @@
+import Board from "components/Board";
+
 const Game = () => {
-  return <h2>Game</h2>;
+  return <Board />;
 };
 
 export default Game;
