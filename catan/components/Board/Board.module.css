@@ -1,21 +1,19 @@
-.board {
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.wrapper {
+.layersContainer {
   height: 500px;
   width: 100vw;
-  margin-bottom: 108px;
+  margin-bottom: 48px;
   display: flex;
   justify-content: center;
 }
 .container {
-  width: 500px;
+  width: 510px;
+
   position: relative;
 }
 .layer {
+  height: 467px;
+  display: flex;
+  align-items: center;
   position: absolute;
   top: 0;
   left: 0;
@@ -24,4 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.top {
+  z-index: 3;
 }

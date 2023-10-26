@@ -3,12 +3,12 @@ import { usePlayersContext } from "providers/hooks";
 import classes from "./PlayersBoard.module.css";
 
 const PlayersBoard = () => {
-  const { filterPlayersWhoPlay } = usePlayersContext();
+  const { filteredPlayers } = usePlayersContext();
 
   return (
     <div className={classes.container}>
-      <h2>Players:</h2>
-      {Object.values(filterPlayersWhoPlay).map((player, i) => (
+      <h2 className={classes.title}>Players:</h2>
+      {Object.values(filteredPlayers).map((player, i) => (
         <div key={i} className={classes.playerContainer}>
           <div className={classes.playerWrapper}>
             <span

@@ -77,7 +77,6 @@ const CreateGame = () => {
     const playersToInitialize = modifiedPlayerNames.map((player, i) => ({
       [playersIdentifiers[i]]: player,
     }));
-    console.log(playersToInitialize);
 
     initializePlayers(playersToInitialize);
     router.push("/game");

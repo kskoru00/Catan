@@ -1,7 +1,7 @@
 .button {
   cursor: pointer;
   width: 50px;
-  background-color: black;
+  background-color: var(--black);
   border: none;
   height: 3px;
 }
@@ -13,7 +13,20 @@
 }
 .vertical {
   transform: rotateY(0deg) rotate(90deg);
+  width: 56px;
 }
 .verticalContainer:not(:last-child) {
-  margin-right: 50px;
+  margin-right: 43.5px;
+}
+.red {
+  background-color: var(--red);
+}
+.blue {
+  background-color: var(--blue);
+}
+.white {
+  background-color: var(--white);
+}
+.orange {
+  background-color: var(--orange);
 }

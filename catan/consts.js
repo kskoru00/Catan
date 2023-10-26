@@ -15,12 +15,10 @@ export const playerColors = [
   { id: 3, color: "red" },
 ];
 
-//export const NUMBER_OF_ROWS_ON_BOARD = 5;
-
 export const NUMBER_OF_TILES_IN_ROW = [3, 4, 5, 4, 3];
-export const NUMBER_OF_CITIES_IN_ROW = [3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3];
-
-//export const TILES_NUMBER_ON_BOARD = 19;
+export const NUMBER_OF_SETTLEMENTS_IN_ROW = [
+  3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3,
+];
 
 export const terrainTypes = [
   {

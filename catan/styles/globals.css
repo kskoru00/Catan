@@ -11,6 +11,7 @@
   --green: #4f7942;
   --light-green: #93c572;
   --gray: #a9a9a9;
+  --black: #343434;
 }
 * {
   box-sizing: border-box;
@@ -21,7 +22,9 @@ body {
   color: var(--dark-brown);
 }
 
-h1 {
+h1,
+h2,
+h3 {
   margin-top: 0;
   margin-bottom: 0;
 }

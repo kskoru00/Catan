@@ -1,0 +1,21 @@
+.container {
+  width: 10px;
+  height: 10px;
+  border: none;
+  background-color: var(--black);
+}
+.container:not(:last-child) {
+  margin-right: 87px;
+}
+.red {
+  background-color: var(--red);
+}
+.blue {
+  background-color: var(--blue);
+}
+.white {
+  background-color: var(--white);
+}
+.orange {
+  background-color: var(--orange);
+}

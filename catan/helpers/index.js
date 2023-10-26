@@ -6,6 +6,7 @@ export const generateRandomTerrainType = (boardTiles) => {
       boardTiles.filter((tile) => tile.terrainId === type.id).length <
       type.amount
   );
+
   const randomNumber = generateRandomNumber(
     0,
     availableTerrainTypes.length - 1

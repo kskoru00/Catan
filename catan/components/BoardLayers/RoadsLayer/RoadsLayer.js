@@ -1,19 +1,25 @@
 import { useState } from "react";
 
-import { setInitialRoads } from "components/helpers/initializeBoardElements";
 import Road from "components/UI/Road";
+import { setInitialRoads } from "helpers/initializeBoardElements";
 
 import classes from "./RoadsLayer.module.css";
 
-const RoadsLayer = () => {
+const RoadsLayer = ({ isLayerActive }) => {
   const [roads, setRoads] = useState(setInitialRoads());
 
   return (
     <div className={classes.container}>
       {roads.map((row, i) => (
         <div key={i} className={classes.row}>
-          {row.map((_, j) => (
-            <Road key={i - j} id={i - j} row={i} position={j} />
+          {row.map((road, j) => (
+            <Road
+              isDisabled={!isLayerActive}
+              key={i - j}
+              id={road}
+              row={i}
+              position={j}
+            />
           ))}
         </div>
       ))}

@@ -1,7 +1,12 @@
 import Board from "components/Board";
+import ViewsProvider from "providers/views";
 
 const Game = () => {
-  return <Board />;
+  return (
+    <ViewsProvider>
+      <Board />
+    </ViewsProvider>
+  );
 };
 
 export default Game;

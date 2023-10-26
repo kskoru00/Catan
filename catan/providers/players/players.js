@@ -2,7 +2,7 @@ import { createContext, useReducer } from "react";
 
 import { Players } from "consts";
 
-import { generateRandomColor, generateRandomNumber } from "components/helpers";
+import { generateRandomColor, generateRandomNumber } from "helpers";
 
 const initialState = {
   [Players.playerOne]: {
@@ -10,37 +10,54 @@ const initialState = {
     color: null,
     score: 0,
     isActive: false,
+    settlements: [],
+    cities: [],
+    roads: [],
   },
   [Players.playerTwo]: {
     name: "",
     color: null,
     score: 0,
     isActive: false,
+    settlements: [],
+    cities: [],
+    roads: [],
   },
   [Players.playerThree]: {
     name: "",
     color: null,
     score: 0,
     isActive: false,
+    settlements: [],
+    cities: [],
+    roads: [],
   },
   [Players.playerFour]: {
     name: "",
     color: null,
     score: 0,
     isActive: false,
+    settlements: [],
+    cities: [],
+    roads: [],
   },
 };
 
 const SET_PLAYER = "SET_PLAYER";
 const SET_PLAYER_AS_ACTIVE = "SET_PLAYER_AS_ACTIVE";
+const SET_PLAYER_AS_UNACTIVE = "SET_PLAYER_AS_UNACTIVE";
+const UPDATE_PLAYERS_SETTLEMENTS = "UPDATE_PLAYERS_SETTLEMENTS";
+const UPDATE_PLAYERS_ROADS = "UPDATE_PLAYERS_ROADS";
 
 export const PlayersContext = createContext({
   state: { ...initialState },
   initializePlayers: () => {},
-  switchActivePlayer: () => {},
+  changeActivePlayer: () => {},
   setPlayerAsActive: () => {},
   setPlayerScore: () => {},
   setPlayersToInitialState: () => {},
+  updatePlayersSettlements: () => {},
+  updatePlayersRoads: () => {},
 });
 
 const reducer = (state = initialState, action) => {
@@ -65,6 +82,34 @@ const reducer = (state = initialState, action) => {
         [action.payload.player]: {
           ...state[action.payload.player],
           isActive: true,
+        },
+      };
+    case SET_PLAYER_AS_UNACTIVE: {
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          isActive: false,
+        },
+      };
+    }
+    case UPDATE_PLAYERS_SETTLEMENTS:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          settlements: [
+            ...state[action.payload.player].settlements,
+            action.payload.settlementId,
+          ],
+        },
+      };
+    case UPDATE_PLAYERS_ROADS:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          roads: [...state[action.payload.player].roads, action.payload.roadId],
         },
       };
   }
@@ -95,14 +140,73 @@ const PlayersProvider = ({ children }) => {
     });
   };
 
-  const filterPlayersWhoPlay = Object.values(players).filter(
+  const filteredPlayers = Object.values(players).filter(
     (player) => player.name.length > 0
   );
 
+  const updatePlayersSettlements = (settlementId) => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    dispatch({
+      type: "UPDATE_PLAYERS_SETTLEMENTS",
+      payload: {
+        player: activePlayer,
+        settlementId,
+      },
+    });
+  };
+
+  const changeActivePlayer = () => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    const activePlayerIndex = Object.values(filteredPlayers).findIndex(
+      (player) => player.isActive
+    );
+
+    const newActivePlayerName =
+      activePlayerIndex === filteredPlayers.length - 1
+        ? filteredPlayers[0].name
+        : filteredPlayers[activePlayerIndex + 1].name;
+
+    const newActivePlayer = Object.keys(players).find(
+      (key) => players[key].name === newActivePlayerName
+    );
+
+    dispatch({
+      type: "SET_PLAYER_AS_UNACTIVE",
+      payload: {
+        player: activePlayer,
+      },
+    });
+    dispatch({
+      type: "SET_PLAYER_AS_ACTIVE",
+      payload: {
+        player: newActivePlayer,
+      },
+    });
+  };
+
+  const updatePlayersRoads = (roadId) => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    dispatch({
+      type: "UPDATE_PLAYERS_ROADS",
+      payload: {
+        player: activePlayer,
+        roadId,
+      },
+    });
+  };
   const value = {
     players,
-    filterPlayersWhoPlay,
+    filteredPlayers,
     initializePlayers,
+    updatePlayersSettlements,
+    updatePlayersRoads,
+    changeActivePlayer,
   };
 
   return (
