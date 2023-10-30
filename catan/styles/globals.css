@@ -20,6 +20,7 @@ body {
   margin: 0;
   background-color: var(--light-brown);
   color: var(--dark-brown);
+  white-space: pre-wrap;
 }
 
 h1,

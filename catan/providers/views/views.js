@@ -4,17 +4,32 @@ const Views = Object.freeze({
   startGameView: "startGameView",
   setupGameView: "setupGameView",
   resourceProductionView: "resourceProductionView",
+  robberView: "robberView",
+  robberViewPhase2: "robberViewPhase2",
+  robberViewPhase3: "robberViewPhase3",
+  tradeView: "tradeView",
+});
+
+const Layers = Object.freeze({
+  tilesLayer: "tilesLayer",
+  roadsLayer: "roadsLayer",
+  settlementsLayer: "settlementsLayer",
+  none: "none",
 });
 
 const initialState = {
   activeView: Views.startGameView,
+  activeLayer: Layers.none,
   error: "",
+  updateMessage: "",
 };
 
 export const ViewContext = createContext({
   view: { ...initialState },
   changeView: () => {},
+  changeActiveLayer: () => {},
   setError: () => {},
+  setUpdateMessage: () => {},
 });
 
 const ViewsProvider = ({ children }) => {
@@ -24,14 +39,24 @@ const ViewsProvider = ({ children }) => {
     setView((prevView) => ({ ...prevView, activeView: Views[view] }));
   };
 
+  const changeActiveLayer = (layer) => {
+    setView((prevLayer) => ({ ...prevLayer, activeLayer: Layers[layer] }));
+  };
+
   const setError = (errorMessage) => {
     setView((prevView) => ({ ...prevView, error: errorMessage }));
+  };
+
+  const setUpdateMessage = (updateMessage) => {
+    setView((prevView) => ({ ...prevView, updateMessage }));
   };
 
   const value = {
     view,
     changeView,
+    changeActiveLayer,
     setError,
+    setUpdateMessage,
   };
 
   return <ViewContext.Provider value={value}>{children}</ViewContext.Provider>;

@@ -1,8 +1,16 @@
 import { createContext, useReducer } from "react";
 
-import { Players } from "consts";
+import { Players, terrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
+
+const terrainNames = terrainTypes.map((terrain) => terrain.name);
+const resourceCards = {};
+terrainNames.forEach((name) => {
+  if (name !== "dessert") {
+    resourceCards[name] = 0;
+  }
+});
 
 const initialState = {
   [Players.playerOne]: {
@@ -13,6 +21,7 @@ const initialState = {
     settlements: [],
     cities: [],
     roads: [],
+    resourceCards,
   },
   [Players.playerTwo]: {
     name: "",
@@ -22,6 +31,7 @@ const initialState = {
     settlements: [],
     cities: [],
     roads: [],
+    resourceCards,
   },
   [Players.playerThree]: {
     name: "",
@@ -31,6 +41,7 @@ const initialState = {
     settlements: [],
     cities: [],
     roads: [],
+    resourceCards,
   },
   [Players.playerFour]: {
     name: "",
@@ -40,6 +51,7 @@ const initialState = {
     settlements: [],
     cities: [],
     roads: [],
+    resourceCards,
   },
 };
 
@@ -48,6 +60,8 @@ const SET_PLAYER_AS_ACTIVE = "SET_PLAYER_AS_ACTIVE";
 const SET_PLAYER_AS_UNACTIVE = "SET_PLAYER_AS_UNACTIVE";
 const UPDATE_PLAYERS_SETTLEMENTS = "UPDATE_PLAYERS_SETTLEMENTS";
 const UPDATE_PLAYERS_ROADS = "UPDATE_PLAYERS_ROADS";
+const ADD_RESOURCE_CARD = "ADD_RESOURCE_CARD";
+const REMOVE_RESOURCE_CARD = "REMOVE_RESOURCE_CARD";
 
 export const PlayersContext = createContext({
   state: { ...initialState },
@@ -58,6 +72,8 @@ export const PlayersContext = createContext({
   setPlayersToInitialState: () => {},
   updatePlayersSettlements: () => {},
   updatePlayersRoads: () => {},
+  addResourceCard: () => {},
+  removeResourceCard: () => {},
 });
 
 const reducer = (state = initialState, action) => {
@@ -112,6 +128,34 @@ const reducer = (state = initialState, action) => {
           roads: [...state[action.payload.player].roads, action.payload.roadId],
         },
       };
+    case ADD_RESOURCE_CARD:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          resourceCards: {
+            ...state[action.payload.player].resourceCards,
+            [action.payload.resourceType]:
+              state[action.payload.player].resourceCards[
+                action.payload.resourceType
+              ] + 1,
+          },
+        },
+      };
+    case REMOVE_RESOURCE_CARD:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          resourceCards: {
+            ...state[action.payload.player].resourceCards,
+            [action.payload.resourceType]:
+              state[action.payload.player].resourceCards[
+                action.payload.resourceType
+              ] - 1,
+          },
+        },
+      };
   }
 };
 
@@ -121,7 +165,7 @@ const PlayersProvider = ({ children }) => {
   const initializePlayers = (playersArr) => {
     playersArr.forEach((player) => {
       dispatch({
-        type: "SET_PLAYER",
+        type: SET_PLAYER,
         payload: {
           player: Object.keys(player)[0],
           name: Object.values(player)[0],
@@ -133,7 +177,7 @@ const PlayersProvider = ({ children }) => {
     const activePlayer = playersArr[randomPlayerPosition];
 
     dispatch({
-      type: "SET_PLAYER_AS_ACTIVE",
+      type: SET_PLAYER_AS_ACTIVE,
       payload: {
         player: Object.keys(activePlayer)[0],
       },
@@ -149,7 +193,7 @@ const PlayersProvider = ({ children }) => {
       (key) => players[key].isActive
     );
     dispatch({
-      type: "UPDATE_PLAYERS_SETTLEMENTS",
+      type: UPDATE_PLAYERS_SETTLEMENTS,
       payload: {
         player: activePlayer,
         settlementId,
@@ -175,13 +219,13 @@ const PlayersProvider = ({ children }) => {
     );
 
     dispatch({
-      type: "SET_PLAYER_AS_UNACTIVE",
+      type: SET_PLAYER_AS_UNACTIVE,
       payload: {
         player: activePlayer,
       },
     });
     dispatch({
-      type: "SET_PLAYER_AS_ACTIVE",
+      type: SET_PLAYER_AS_ACTIVE,
       payload: {
         player: newActivePlayer,
       },
@@ -193,13 +237,40 @@ const PlayersProvider = ({ children }) => {
       (key) => players[key].isActive
     );
     dispatch({
-      type: "UPDATE_PLAYERS_ROADS",
+      type: UPDATE_PLAYERS_ROADS,
       payload: {
         player: activePlayer,
         roadId,
       },
     });
   };
+
+  const addResourceCard = (resourceType, playerName) => {
+    const player = Object.keys(players).find(
+      (key) => players[key].name === playerName
+    );
+
+    dispatch({
+      type: ADD_RESOURCE_CARD,
+      payload: {
+        player,
+        resourceType,
+      },
+    });
+  };
+  const removeResourceCard = (resourceType, playerName) => {
+    const player = Object.keys(players).find(
+      (key) => players[key].name === playerName
+    );
+    dispatch({
+      type: REMOVE_RESOURCE_CARD,
+      payload: {
+        player,
+        resourceType,
+      },
+    });
+  };
+
   const value = {
     players,
     filteredPlayers,
@@ -207,6 +278,8 @@ const PlayersProvider = ({ children }) => {
     updatePlayersSettlements,
     updatePlayersRoads,
     changeActivePlayer,
+    addResourceCard,
+    removeResourceCard,
   };
 
   return (

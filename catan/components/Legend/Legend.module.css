@@ -1,0 +1,55 @@
+.container {
+  width: 250px;
+  border: 2px solid var(--brown);
+  border-radius: 5px;
+  padding: 12px;
+}
+.wrapper {
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+.title {
+  margin-bottom: 32px;
+}
+.elementContainer {
+  display: flex;
+  align-items: center;
+}
+.elementContainer:not(:last-child) {
+  margin-bottom: 12px;
+}
+.polygon {
+  width: 15px;
+  height: calc(15px * 1.1547);
+  display: inline-block;
+  clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
+  background-color: var(--dark-brown);
+  margin-right: 12px;
+}
+.settlement {
+  width: 13px;
+  height: 13px;
+  border: none;
+  background-color: var(--black);
+  margin-right: 12px;
+}
+.orange {
+  background-color: var(--dark-orange);
+}
+.gray {
+  background-color: var(--gray);
+}
+.yellow {
+  background-color: var(--yellow);
+}
+.green {
+  background-color: var(--green);
+}
+.brown {
+  background-color: var(--brown);
+}
+.lightGreen {
+  background-color: var(--light-green);
+}

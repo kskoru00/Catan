@@ -1,13 +1,26 @@
+.container {
+  width: 100vw;
+}
+.wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 32px;
+  margin-right: 32px;
+}
+.playersContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 .layersContainer {
   height: 500px;
-  width: 100vw;
+  margin-top: 108px;
   margin-bottom: 48px;
   display: flex;
   justify-content: center;
 }
-.container {
+.layersWrapper {
   width: 510px;
-
   position: relative;
 }
 .layer {
@@ -18,11 +31,52 @@
   top: 0;
   left: 0;
 }
+.panelContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .panel {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+}
+.updatePanel {
+  position: absolute;
+  margin-right: 32px;
+  top: 50%;
+  left: 75%;
+}
+.title {
+  margin-bottom: 16px;
 }
 .top {
   z-index: 3;
+}
+.panelWrapper {
+  width: 250px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.die {
+  font-size: 28px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.red {
+  background-color: var(--red);
+}
+.yellow {
+  background-color: var(--yellow);
+}
+.buttonsContainer {
+  display: flex;
+  justify-content: space-around;
 }

@@ -2,11 +2,13 @@ import { usePlayersContext, useViewsContext } from "providers/hooks";
 
 import classes from "./Road.module.css";
 
-const Road = ({ id, row, position, isDisabled }) => {
+const Road = ({ id, row, position }) => {
   const { filteredPlayers, updatePlayersRoads } = usePlayersContext();
-  const { setError } = useViewsContext();
+  const { view, changeActiveLayer, setError } = useViewsContext();
 
-  const [roadStart, roadEnd] = id.split("-").map((city) => Number(city));
+  const [roadStart, roadEnd] = id
+    .split("-")
+    .map((settlement) => Number(settlement));
 
   const activePlayer = filteredPlayers.find((player) => player.isActive);
 
@@ -37,14 +39,31 @@ const Road = ({ id, row, position, isDisabled }) => {
       setError("You can't select this road.");
       return;
     }
+
+    if (view.activeView === "setupGameView" && activePlayer.roads.length > 0) {
+      const [activePlayerPrevRoadStart, activePlayerPrevRoadEnd] =
+        activePlayer.roads[0]
+          ?.split("-")
+          .map((settlement) => Number(settlement));
+      if (
+        activePlayerPrevRoadStart === roadStart ||
+        activePlayerPrevRoadEnd === roadEnd
+      ) {
+        setError(
+          "You can't select this road. In setup phase every city must have one selected road."
+        );
+        return;
+      }
+    }
     setError("");
     updatePlayersRoads(id);
+    changeActiveLayer("settlementsLayer");
   };
 
   return (
     <div className={containerClassName}>
       <button
-        disabled={isDisabled}
+        disabled={view.activeLayer !== "roadsLayer"}
         onClick={handleClick}
         className={buttonClassName}
       ></button>

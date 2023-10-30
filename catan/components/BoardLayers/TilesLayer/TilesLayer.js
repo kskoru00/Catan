@@ -1,60 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
-import { useViewsContext } from "providers/hooks";
-
-import { generateRandomTerrainType, generateRandomTokenNumber } from "helpers";
-import { setInitialTiles } from "helpers/initializeBoardElements";
+import { useTileContext, useViewsContext } from "providers/hooks";
 
 import Tile from "components/UI/Tile";
 
 import classes from "./TilesLayer.module.css";
 
 const TilesLayer = () => {
-  const [boardTiles, setBoardTiles] = useState(setInitialTiles());
+  const { tiles, setInitialTiles } = useTileContext();
   const { view } = useViewsContext();
 
   useEffect(() => {
     if (
       view.activeView === "setupGameView" &&
-      boardTiles.every((row) =>
+      tiles.every((row) =>
         row.every(
           (tile) => tile.tokenNumber === null && tile.terrainId === null
         )
       )
     ) {
-      boardTiles.forEach((row, i) => {
-        row.forEach((_, j) => {
-          setBoardTiles((prevTiles) => {
-            const newBoardTiles = prevTiles.map((row) => [...row]);
-            const terrainId = generateRandomTerrainType(prevTiles.flat());
-            const tokenNumber = generateRandomTokenNumber(
-              prevTiles.flat(),
-              terrainId
-            );
-
-            newBoardTiles[i][j] = {
-              ...newBoardTiles[i][j],
-              terrainId,
-              tokenNumber,
-            };
-
-            return newBoardTiles;
-          });
-        });
-      });
+      setInitialTiles();
     }
-  }, [view]);
+  }, [view.activeView]);
 
   return (
     <div className={classes.container}>
-      {boardTiles.map((row, i) => (
+      {tiles.map((row, i) => (
         <div key={i} className={classes.row}>
-          {row.map((_, j) => (
-            <Tile
-              terrainId={boardTiles[i][j].terrainId}
-              tokenNumber={boardTiles[i][j].tokenNumber}
-              key={i - j}
-            />
+          {row.map((tile, j) => (
+            <Tile key={i - j} id={tile.id} />
           ))}
         </div>
       ))}

@@ -6,6 +6,7 @@ export const setInitialTiles = () => {
       id: null,
       terrainId: null,
       tokenNumber: null,
+      isActive: true,
     })
   );
 

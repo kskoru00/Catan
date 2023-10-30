@@ -1,25 +1,27 @@
-import { useState } from "react";
+import { useViewsContext } from "providers/hooks";
 
-import City from "components/UI/Settlement";
 import { setInitialSettlements } from "helpers/initializeBoardElements";
+
+import Settlement from "components/UI/Settlement";
 
 import classes from "./SettlementsLayer.module.css";
 
-const SettlementsLayer = ({ isLayerActive }) => {
-  const [settlements, setSettlements] = useState(setInitialSettlements());
+const SettlementsLayer = () => {
+  const settlements = setInitialSettlements();
+  const { view } = useViewsContext();
 
   return (
     <div className={classes.container}>
       {settlements.map((row, i) => (
         <div key={i} className={classes.row}>
-          {row.map((settlement, j) => (
-            <City
-              isDisabled={!isLayerActive}
-              key={i - j}
-              id={settlement.id}
-              neighbours={settlement.neighbours}
-            />
-          ))}
+          {view.activeLayer !== "tilesLayer" &&
+            row.map((settlement, j) => (
+              <Settlement
+                key={i - j}
+                id={settlement.id}
+                neighbours={settlement.neighbours}
+              />
+            ))}
         </div>
       ))}
     </div>

@@ -2,32 +2,34 @@ import { usePlayersContext, useViewsContext } from "providers/hooks";
 
 import classes from "./Settlement.module.css";
 
-const Settlement = ({ id, isDisabled, neighbours }) => {
+const Settlement = ({ id, neighbours }) => {
   const { filteredPlayers, updatePlayersSettlements } = usePlayersContext();
-  const { setError } = useViewsContext();
+  const { view, changeActiveLayer, setError } = useViewsContext();
 
   const color = filteredPlayers.find((player) =>
     player.settlements.find((settlement) => settlement === id)
   )?.color;
 
   const handleClick = () => {
-    if (
-      neighbours.find((el) =>
-        filteredPlayers.find((player) =>
-          player.settlements.find((settlement) => settlement === el)
-        )
+    const isSettlementUnavailable = neighbours.find((el) =>
+      filteredPlayers.find((player) =>
+        player.settlements.find((settlement) => settlement === el)
       )
-    ) {
+    );
+
+    if (isSettlementUnavailable) {
       setError("You can't select this settlement.");
       return;
     }
+
     setError("");
     updatePlayersSettlements(id);
+    changeActiveLayer("roadsLayer");
   };
 
   return (
     <button
-      disabled={isDisabled}
+      disabled={view.activeLayer !== "settlementsLayer"}
       onClick={handleClick}
       className={`${classes.container} ${classes[color]}`}
     ></button>

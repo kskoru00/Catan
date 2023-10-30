@@ -44,7 +44,7 @@ export const terrainTypes = [
   },
   {
     id: 3,
-    name: "fiels",
+    name: "fields",
     amount: 4,
     produce: "grain",
     color: "yellow",
