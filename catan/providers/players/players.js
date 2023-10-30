@@ -152,7 +152,7 @@ const reducer = (state = initialState, action) => {
             [action.payload.resourceType]:
               state[action.payload.player].resourceCards[
                 action.payload.resourceType
-              ] - 1,
+              ] - action.payload.value,
           },
         },
       };
@@ -258,15 +258,17 @@ const PlayersProvider = ({ children }) => {
       },
     });
   };
-  const removeResourceCard = (resourceType, playerName) => {
+  const removeResourceCard = (resourceType, playerName, amount) => {
     const player = Object.keys(players).find(
       (key) => players[key].name === playerName
     );
+    const value = amount ? amount : 1;
     dispatch({
       type: REMOVE_RESOURCE_CARD,
       payload: {
         player,
         resourceType,
+        value,
       },
     });
   };

@@ -155,6 +155,7 @@ const Board = () => {
           </div>
         );
       }
+      changeView("tradeView");
     }
   }, [view.activeView]);
 
@@ -168,7 +169,7 @@ const Board = () => {
     setUpdateMessage(
       `Removed random resource ${availableCards[random][0]} for player ${player.name}`
     );
-    changeView("tradeView");
+    console.log(playerToSelectResources);
   };
 
   const handleDiceRoll = () => {
@@ -230,16 +231,7 @@ const Board = () => {
   };
 
   const getPanelView = () => {
-    if (view.error !== "") {
-      return (
-        <Error>
-          <p>
-            **
-            {view.error}
-          </p>
-        </Error>
-      );
-    } else if (view.activeView === "startGameView") {
+    if (view.activeView === "startGameView") {
       return (
         <Button
           onClick={() => {
@@ -298,6 +290,35 @@ const Board = () => {
       );
     } else if (view.activeView === "robberViewPhase3") {
       return <>{panelMessage}</>;
+    } else if (
+      view.activeView === "tradeView" ||
+      view.activeView === "tradeViewPhase2"
+    ) {
+      return (
+        <div className={classes.panelContainer}>
+          <h3 className={classes.title}>Trade with bank :</h3>
+          {view.activeView === "tradeView" && (
+            <>
+              <p>
+                {Object.values(activePlayer.resourceCards).find(
+                  (card) => card >= 4
+                )
+                  ? `${activePlayer.name} click on resource which you want to trade`
+                  : "You don't have enough resources for trading."}
+              </p>
+              <Button
+                value="Go to build phase"
+                onClick={() => {
+                  changeView("buildView");
+                }}
+              />
+            </>
+          )}
+          {view.activeView === "tradeViewPhase2" && (
+            <p>Click on resource which you want to add</p>
+          )}
+        </div>
+      );
     }
   };
   return (
@@ -305,10 +326,18 @@ const Board = () => {
       <div className={classes.wrapper}>
         <div className={classes.playersContainer}>
           <PlayersBoard />
-          {view.activeView === "robberView" &&
-            playerToSelectResources !== null && (
-              <ResourceCard player={filteredPlayers[playerToSelectResources]} />
-            )}
+          {((view.activeView === "robberView" &&
+            playerToSelectResources !== null) ||
+            view.activeView === "tradeView" ||
+            view.activeView === "tradeViewPhase2") && (
+            <ResourceCard
+              player={
+                view.activeView === "robberView"
+                  ? filteredPlayers[playerToSelectResources]
+                  : activePlayer
+              }
+            />
+          )}
         </div>
         <div className={classes.layersContainer}>
           <div className={classes.layersWrapper}>
@@ -343,6 +372,16 @@ const Board = () => {
             {view.updateMessage !== "" && <p>{view.updateMessage}</p>}
           </div>
         </div>
+      </div>
+      <div className={classes.errorContainer}>
+        {view.error !== "" && (
+          <Error>
+            <p>
+              **
+              {view.error}
+            </p>
+          </Error>
+        )}
       </div>
       <div className={classes.panel}>{getPanelView()}</div>
     </div>

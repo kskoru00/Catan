@@ -8,6 +8,8 @@ const Views = Object.freeze({
   robberViewPhase2: "robberViewPhase2",
   robberViewPhase3: "robberViewPhase3",
   tradeView: "tradeView",
+  tradeViewPhase2: "tradeViewPhase2",
+  buildView: "buildView",
 });
 
 const Layers = Object.freeze({
