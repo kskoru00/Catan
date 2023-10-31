@@ -77,3 +77,34 @@ export const tokenNumbers = [
   { value: 11, amount: 2 },
   { value: 12, amount: 1 },
 ];
+
+export const TOTAL_NUMBER_OF_EACH_RESOURCE = 95 / 5;
+
+export const NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK = 4;
+export const NUMBER_OF_RESOURCES_RECEIVING_FROM_BANK = 1;
+
+export const MAX_AMOUNT_SETTLEMENTS = 5;
+export const MAX_AMOUNT_CITIES = 4;
+export const MAX_AMOUNT_ROADS = 15;
+
+export const resourcesForBuild = {
+  road: {
+    brick: 1,
+    lumber: 1,
+  },
+  settlement: {
+    brick: 1,
+    lumber: 1,
+    wool: 1,
+    grain: 1,
+  },
+  city: {
+    ore: 3,
+    grain: 2,
+  },
+  developmentCard: {
+    ore: 1,
+    wool: 1,
+    grain: 1,
+  },
+};

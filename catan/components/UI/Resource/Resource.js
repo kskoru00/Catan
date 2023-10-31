@@ -1,10 +1,13 @@
 import { usePlayersContext, useViewsContext } from "providers/hooks";
 
 import classes from "./Resource.module.css";
+import { NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK } from "consts";
 
 const Resource = ({ type, amount, playerName }) => {
   const { addResourceCard, removeResourceCard } = usePlayersContext();
   const { view, changeView, setUpdateMessage, setError } = useViewsContext();
+
+  //triba onemogucit da onaj koji se da banci se doda
 
   const handleClick = () => {
     if (view.activeView === "robberView") {
@@ -20,7 +23,7 @@ const Resource = ({ type, amount, playerName }) => {
         return;
       }
       setError("");
-      removeResourceCard(type, playerName, 4);
+      removeResourceCard(type, playerName, NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK);
 
       setUpdateMessage(`Removed 4 ${type} for ${playerName}`);
       changeView("tradeViewPhase2");

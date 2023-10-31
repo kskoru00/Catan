@@ -4,7 +4,7 @@ import { terrainTypes } from "consts";
 
 import classes from "./Tile.module.css";
 
-const Tile = ({ id }) => {
+const Tile = ({ id, onClick }) => {
   const { tiles, toggleTileIsActive } = useTileContext();
   const { view, changeView, changeActiveLayer } = useViewsContext();
 
@@ -26,6 +26,7 @@ const Tile = ({ id }) => {
 
     changeActiveLayer("none");
     changeView("robberViewPhase3");
+    onClick(id);
   };
 
   return (

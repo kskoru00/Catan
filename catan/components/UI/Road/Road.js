@@ -1,10 +1,23 @@
-import { usePlayersContext, useViewsContext } from "providers/hooks";
+import {
+  usePlayersContext,
+  useViewsContext,
+  useTileContext,
+} from "providers/hooks";
+
+import { terrainTypes } from "consts";
 
 import classes from "./Road.module.css";
 
 const Road = ({ id, row, position }) => {
-  const { filteredPlayers, updatePlayersRoads } = usePlayersContext();
-  const { view, changeActiveLayer, setError } = useViewsContext();
+  const {
+    filteredPlayers,
+    updatePlayersRoads,
+    changeActivePlayer,
+    addResourceCard,
+  } = usePlayersContext();
+  const { view, changeView, changeActiveLayer, setUpdateMessage, setError } =
+    useViewsContext();
+  const { tiles } = useTileContext();
 
   const [roadStart, roadEnd] = id
     .split("-")
@@ -30,9 +43,52 @@ const Road = ({ id, row, position }) => {
     buttonClassName += ` ${classes.vertical}`;
   }
 
+  const setPlayersSetupResources = () => {
+    const playersNewResources = filteredPlayers.map((player) => ({
+      name: player.name,
+      newResource: [],
+    }));
+    filteredPlayers.forEach((player) => {
+      player.settlements.forEach((settlement) => {
+        const resourceCards = tiles
+          .flat()
+          .filter((type) => type.settlements.find((el) => el === settlement))
+          .map((tile) => terrainTypes[tile.terrainId].name)
+          .filter((card) => card !== "dessert")
+          .map(
+            (tileType) =>
+              terrainTypes.find((type) => type.name === tileType).produce
+          );
+
+        resourceCards.forEach((card) => {
+          addResourceCard(card, player.name);
+          playersNewResources
+            .find((el) => el.name === player.name)
+            .newResource.push(card);
+        });
+      });
+    });
+    const message = playersNewResources.every(
+      (player) => player.newResource.length === 0
+    )
+      ? `There are no resources to add.`
+      : `Added resources:` +
+        "\n" +
+        "\n" +
+        playersNewResources
+          .filter((players) => players.newResource.length > 0)
+          .map(
+            (el) => `${el.name} :  
+            ${el.newResource.join(", ")}`
+          )
+          .join("\n");
+
+    setUpdateMessage(message);
+  };
+
   const handleClick = () => {
     if (
-      !activePlayer.settlements.find(
+      !activePlayer.settlements.some(
         (settlement) => settlement === roadStart || settlement === roadEnd
       )
     ) {
@@ -41,14 +97,13 @@ const Road = ({ id, row, position }) => {
     }
 
     if (view.activeView === "setupGameView" && activePlayer.roads.length > 0) {
-      const [activePlayerPrevRoadStart, activePlayerPrevRoadEnd] =
+      const oneDirection = activePlayer.settlements.find((settlement) =>
         activePlayer.roads[0]
-          ?.split("-")
-          .map((settlement) => Number(settlement));
-      if (
-        activePlayerPrevRoadStart === roadStart ||
-        activePlayerPrevRoadEnd === roadEnd
-      ) {
+          .split("-")
+          .every((roadCity) => Number(roadCity) !== settlement)
+      );
+
+      if (oneDirection !== roadStart && oneDirection !== roadEnd) {
         setError(
           "You can't select this road. In setup phase every city must have one selected road."
         );
@@ -58,6 +113,27 @@ const Road = ({ id, row, position }) => {
     setError("");
     updatePlayersRoads(id);
     changeActiveLayer("settlementsLayer");
+
+    if (filteredPlayers.every((player) => player.settlements.length === 2)) {
+      setPlayersSetupResources();
+      changeView("resourceProductionView");
+      changeActiveLayer("none");
+      return;
+    } else if (
+      filteredPlayers.every((player) => player.settlements.length === 1)
+    ) {
+      return;
+    } else if (activePlayer.settlements.length === 2) {
+      changeActivePlayer(-1);
+    } else if (
+      !filteredPlayers.find(
+        (player) => player.settlements.length === 2 && player.roads.length === 2
+      ) &&
+      activePlayer.settlements.length < 2 &&
+      activePlayer.roads.length < 2
+    ) {
+      changeActivePlayer();
+    }
   };
 
   return (

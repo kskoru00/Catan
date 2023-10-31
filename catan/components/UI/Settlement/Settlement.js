@@ -7,7 +7,7 @@ const Settlement = ({ id, neighbours }) => {
   const { view, changeActiveLayer, setError } = useViewsContext();
 
   const color = filteredPlayers.find((player) =>
-    player.settlements.find((settlement) => settlement === id)
+    player.settlements.some((settlement) => settlement === id)
   )?.color;
 
   const handleClick = () => {

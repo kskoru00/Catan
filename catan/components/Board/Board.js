@@ -28,7 +28,7 @@ const Board = () => {
     useViewsContext();
   const { filteredPlayers, addResourceCard, removeResourceCard } =
     usePlayersContext();
-  const { tiles } = useTileContext();
+  const { tiles, setInitialTiles } = useTileContext();
 
   const activePlayer = filteredPlayers.find((player) => player.isActive);
 
@@ -81,83 +81,46 @@ const Board = () => {
     }
   }, [filteredPlayers, playerToSelectResources]);
 
-  useEffect(() => {
-    if (view.activeView === "robberView") {
-      if (
-        filteredPlayers.every(
-          (player) =>
-            Object.values(player.resourceCards).reduce(
-              (sum, el) => el + sum,
-              0
-            ) <= 7
+  const handleTileClicked = (id) => {
+    //vidit jel bolje useeffect
+
+    const occupiedTile = tiles.flat().find((tile) => tile.id === id);
+
+    const playersWhoseSettlementIsOccupied = filteredPlayers.filter(
+      (players) =>
+        !players.isActive &&
+        players.settlements.find((settlement) =>
+          occupiedTile.settlements.find((el) => el === settlement)
         )
-      ) {
-        setUpdateMessage(
-          "There is no player who has more than 7 resource cards."
-        );
-        changeView("robberViewPhase2");
-        changeActiveLayer("tilesLayer");
-        return;
-      }
-      const cardsToKeep = [...amountOfRemainingResourcesForPlayers];
-      filteredPlayers.forEach((player, i) => {
-        const count = Object.values(player.resourceCards).reduce(
-          (sum, el) => el + sum,
-          0
-        );
+    );
 
-        if (count <= 7) {
-          cardsToKeep[i] = count;
-        } else {
-          cardsToKeep[i] = count - Math.trunc(count / 2);
-        }
-      });
-      setAmountOfRemainingResourcesForPlayers(cardsToKeep);
-      setPlayerToSelectResources(0);
-    }
-    if (view.activeView === "robberViewPhase3") {
-      const nonActiveElement = tiles.flat().find((el) => !el.isActive);
-
-      const occupiedTile = nonActiveElement
-        ? nonActiveElement
-        : tiles.flat().find((el) => el.tokenNumber === 7);
-
-      const playersWhoseSettlementIsOccupied = filteredPlayers.filter(
-        (players) =>
-          !players.isActive &&
-          players.settlements.find((settlement) =>
-            occupiedTile.settlements.find((el) => el === settlement)
-          )
-      );
-
-      if (playersWhoseSettlementIsOccupied.length === 0) {
-        setUpdateMessage("No players have settlement on selected tile");
-      } else if (playersWhoseSettlementIsOccupied.length === 1) {
-        setPanelMessage(
-          `Only ${playersWhoseSettlementIsOccupied[0].name} has property on choosen tile.`
-        );
-        chooseRandomForRobber(playersWhoseSettlementIsOccupied[0]);
-      } else if (playersWhoseSettlementIsOccupied.length > 1) {
-        setPanelMessage(
-          <div>
-            <p>Select from which player you want to take resource card</p>
-            <div className={classes.buttonsContainer}>
-              {playersWhoseSettlementIsOccupied.map((el, i) => (
-                <Button
-                  onClick={() => {
-                    chooseRandomForRobber(el);
-                  }}
-                  key={i}
-                  value={el.name}
-                ></Button>
-              ))}
-            </div>
-          </div>
-        );
-      }
+    if (playersWhoseSettlementIsOccupied.length === 0) {
+      setUpdateMessage("No players have settlement on selected tile");
       changeView("tradeView");
+    } else if (playersWhoseSettlementIsOccupied.length === 1) {
+      setPanelMessage(
+        `Only ${playersWhoseSettlementIsOccupied[0].name} has property on choosen tile.`
+      );
+      chooseRandomForRobber(playersWhoseSettlementIsOccupied[0]);
+    } else if (playersWhoseSettlementIsOccupied.length > 1) {
+      setPanelMessage(
+        <div>
+          <p>Select from which player you want to take resource card</p>
+          <div className={classes.buttonsContainer}>
+            {playersWhoseSettlementIsOccupied.map((el, i) => (
+              <Button
+                onClick={() => {
+                  chooseRandomForRobber(el);
+                }}
+                key={i}
+                value={el.name}
+              ></Button>
+            ))}
+          </div>
+        </div>
+      );
     }
-  }, [view.activeView]);
+  };
 
   const chooseRandomForRobber = (player) => {
     const cards = player.resourceCards;
@@ -169,7 +132,42 @@ const Board = () => {
     setUpdateMessage(
       `Removed random resource ${availableCards[random][0]} for player ${player.name}`
     );
-    console.log(playerToSelectResources);
+    changeView("tradeView");
+  };
+
+  const handleActiveRobber = () => {
+    changeView("robberView");
+    if (
+      filteredPlayers.every(
+        (player) =>
+          Object.values(player.resourceCards).reduce(
+            (sum, el) => el + sum,
+            0
+          ) <= 7
+      )
+    ) {
+      setUpdateMessage(
+        "There is no player who has more than 7 resource cards."
+      );
+      changeView("robberViewPhase2");
+      changeActiveLayer("tilesLayer");
+      return;
+    }
+    const cardsToKeep = [...amountOfRemainingResourcesForPlayers];
+    filteredPlayers.forEach((player, i) => {
+      const count = Object.values(player.resourceCards).reduce(
+        (sum, el) => el + sum,
+        0
+      );
+
+      if (count <= 7) {
+        cardsToKeep[i] = count;
+      } else {
+        cardsToKeep[i] = count - Math.trunc(count / 2);
+      }
+    });
+    setAmountOfRemainingResourcesForPlayers(cardsToKeep);
+    setPlayerToSelectResources(0);
   };
 
   const handleDiceRoll = () => {
@@ -184,7 +182,7 @@ const Board = () => {
     const rolledTile = newDiceRoll.reduce((sum, curr) => sum + curr, 0);
 
     if (rolledTile === 7) {
-      changeView("robberView");
+      handleActiveRobber();
 
       return;
     }
@@ -197,18 +195,18 @@ const Board = () => {
       if (!tile.isActive) {
         return;
       }
-      const tileType = terrainTypes.find(
+      const resource = terrainTypes.find(
         (type) => type.id === tile.terrainId
-      ).name;
+      ).produce;
       tile.settlements.forEach((settlement) => {
         const player = filteredPlayers.find((player) =>
           player.settlements.find((el) => el === settlement)
         );
         if (player) {
-          addResourceCard(tileType, player.name);
+          addResourceCard(resource, player.name);
           playersNewResources
             .find((el) => el.name === player.name)
-            .newResource.push(tileType);
+            .newResource.push(resource);
         }
       });
     });
@@ -230,17 +228,15 @@ const Board = () => {
     setUpdateMessage(message);
   };
 
+  const handleStartGame = () => {
+    setInitialTiles();
+    changeView("setupGameView");
+    changeActiveLayer("settlementsLayer");
+  };
+
   const getPanelView = () => {
     if (view.activeView === "startGameView") {
-      return (
-        <Button
-          onClick={() => {
-            changeView("setupGameView");
-            changeActiveLayer("settlementsLayer");
-          }}
-          value="Start game"
-        />
-      );
+      return <Button onClick={handleStartGame} value="Start game" />;
     } else if (view.activeView === "setupGameView") {
       return (
         <div className={classes.panelContainer}>
@@ -346,7 +342,7 @@ const Board = () => {
                 view.activeLayer === "tilesLayer" ? classes.top : ""
               }`}
             >
-              <TilesLayer />
+              <TilesLayer onClick={handleTileClicked} />
             </div>
             <div
               className={`${classes.layer} ${

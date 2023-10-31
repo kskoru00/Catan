@@ -4,11 +4,11 @@ import { Players, terrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
 
-const terrainNames = terrainTypes.map((terrain) => terrain.name);
+const terrainResources = terrainTypes.map((terrain) => terrain.produce);
 const resourceCards = {};
-terrainNames.forEach((name) => {
-  if (name !== "dessert") {
-    resourceCards[name] = 0;
+terrainResources.forEach((resource) => {
+  if (resource !== "nothing") {
+    resourceCards[resource] = 0;
   }
 });
 
@@ -201,18 +201,22 @@ const PlayersProvider = ({ children }) => {
     });
   };
 
-  const changeActivePlayer = () => {
+  const changeActivePlayer = (position) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
     const activePlayerIndex = Object.values(filteredPlayers).findIndex(
       (player) => player.isActive
     );
+    const value = position ? position : 1;
+    const nextActivePlayerIndex =
+      position && activePlayerIndex === 0
+        ? filteredPlayers.length - 1
+        : !position && activePlayerIndex === filteredPlayers.length - 1
+        ? 0
+        : activePlayerIndex + value;
 
-    const newActivePlayerName =
-      activePlayerIndex === filteredPlayers.length - 1
-        ? filteredPlayers[0].name
-        : filteredPlayers[activePlayerIndex + 1].name;
+    const newActivePlayerName = filteredPlayers[nextActivePlayerIndex].name;
 
     const newActivePlayer = Object.keys(players).find(
       (key) => players[key].name === newActivePlayerName
