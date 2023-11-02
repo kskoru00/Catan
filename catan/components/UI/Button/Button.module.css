@@ -11,3 +11,7 @@
   color: var(--light-brown);
   background-color: var(--dark-brown);
 }
+.button:disabled:hover {
+  color: var(--dark-brown);
+  background-color: var(--light-brown);
+}

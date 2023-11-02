@@ -1,24 +1,17 @@
-.wrapper {
-  padding: 16px;
-  border: 2px solid var(--brown);
-  border-radius: 5px;
+.resourceItem {
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: start;
+  font-size: 14px;
+  color: var(--dark-brown);
 }
-.title {
-  margin-bottom: 32px;
+.resourceItem:hover {
+  color: var(--brown);
 }
-.resourceCard {
-  display: flex;
-  flex-direction: column;
+.resourceItem:not(:last-child) {
+  margin-bottom: 12px;
 }
-.red {
-  border-color: var(--red);
-}
-.blue {
-  border-color: var(--blue);
-}
-.white {
-  border-color: var(--white);
-}
-.orange {
-  border-color: var(--orange);
+.resourceItem:disabled:hover {
+  color: var(--dark-brown);
 }

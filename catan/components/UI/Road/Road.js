@@ -4,7 +4,7 @@ import {
   useTileContext,
 } from "providers/hooks";
 
-import { terrainTypes } from "consts";
+import { MAX_AMOUNT_ROADS, resourcesForBuild, terrainTypes } from "consts";
 
 import classes from "./Road.module.css";
 
@@ -14,6 +14,7 @@ const Road = ({ id, row, position }) => {
     updatePlayersRoads,
     changeActivePlayer,
     addResourceCard,
+    removeResourceCard,
   } = usePlayersContext();
   const { view, changeView, changeActiveLayer, setUpdateMessage, setError } =
     useViewsContext();
@@ -88,6 +89,52 @@ const Road = ({ id, row, position }) => {
 
   const handleClick = () => {
     if (
+      filteredPlayers.some((player) => player.roads.some((road) => road === id))
+    ) {
+      setError("This road is already selected.");
+      return;
+    }
+    if (view.activeView === "setupGameView") {
+      handleAddRoadOnSetup();
+    } else if (view.activeView === "buildView") {
+      handleAddRoadOnBuild();
+    }
+  };
+  const handleAddRoadOnBuild = () => {
+    if (activePlayer.roads.length > MAX_AMOUNT_ROADS) {
+      setError("You have no more roads available.");
+      return;
+    }
+    const hasPlayerEnoughResources = Object.entries(
+      resourcesForBuild.road
+    ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
+
+    if (!hasPlayerEnoughResources) {
+      setError(
+        "You don't have enough resources for building road. Please go back to trade or finish your turn."
+      );
+      return;
+    }
+    const isRoadConnectedToPlayersSettlement = activePlayer.settlements.some(
+      (settlement) => settlement === roadStart || settlement === roadEnd
+    );
+    const isRoadConnectToPlayersRoad = activePlayer.roads.some((road) =>
+      road
+        .split("-")
+        .some((el) => Number(el) === roadEnd || Number(el) === roadStart)
+    );
+    if (!isRoadConnectToPlayersRoad && !isRoadConnectedToPlayersSettlement) {
+      setError("You can't choose this road");
+      return;
+    }
+    setError("");
+    updatePlayersRoads(id);
+    Object.entries(resourcesForBuild.road).forEach(([key, value]) =>
+      removeResourceCard(key, activePlayer.name, value)
+    );
+  };
+  const handleAddRoadOnSetup = () => {
+    if (
       !activePlayer.settlements.some(
         (settlement) => settlement === roadStart || settlement === roadEnd
       )
@@ -96,7 +143,7 @@ const Road = ({ id, row, position }) => {
       return;
     }
 
-    if (view.activeView === "setupGameView" && activePlayer.roads.length > 0) {
+    if (activePlayer.roads.length > 0) {
       const oneDirection = activePlayer.settlements.find((settlement) =>
         activePlayer.roads[0]
           .split("-")

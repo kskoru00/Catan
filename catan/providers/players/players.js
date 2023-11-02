@@ -3,6 +3,7 @@ import { createContext, useReducer } from "react";
 import { Players, terrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
+import Settlement from "components/UI/Settlement";
 
 const terrainResources = terrainTypes.map((terrain) => terrain.produce);
 const resourceCards = {};
@@ -11,6 +12,11 @@ terrainResources.forEach((resource) => {
     resourceCards[resource] = 0;
   }
 });
+
+/*const developmentCards = {
+  knight: [],
+  victoryPoints: [],
+};*/
 
 const initialState = {
   [Players.playerOne]: {
@@ -22,6 +28,7 @@ const initialState = {
     cities: [],
     roads: [],
     resourceCards,
+    developmentCards: [],
   },
   [Players.playerTwo]: {
     name: "",
@@ -32,6 +39,7 @@ const initialState = {
     cities: [],
     roads: [],
     resourceCards,
+    developmentCards: [],
   },
   [Players.playerThree]: {
     name: "",
@@ -42,6 +50,7 @@ const initialState = {
     cities: [],
     roads: [],
     resourceCards,
+    developmentCards: [],
   },
   [Players.playerFour]: {
     name: "",
@@ -52,16 +61,21 @@ const initialState = {
     cities: [],
     roads: [],
     resourceCards,
+    developmentCards: [],
   },
 };
 
 const SET_PLAYER = "SET_PLAYER";
 const SET_PLAYER_AS_ACTIVE = "SET_PLAYER_AS_ACTIVE";
 const SET_PLAYER_AS_UNACTIVE = "SET_PLAYER_AS_UNACTIVE";
-const UPDATE_PLAYERS_SETTLEMENTS = "UPDATE_PLAYERS_SETTLEMENTS";
+const ADD_PLAYER_SETTLEMENT = "ADD_PLAYER_SETTLEMENT";
+const REMOVE_PLAYER_SETTLEMENT = "REMOVE_PLAYER_SETTLEMENT";
+const ADD_PLAYER_CITY = "ADD_PLAYER_CITY";
 const UPDATE_PLAYERS_ROADS = "UPDATE_PLAYERS_ROADS";
 const ADD_RESOURCE_CARD = "ADD_RESOURCE_CARD";
 const REMOVE_RESOURCE_CARD = "REMOVE_RESOURCE_CARD";
+const ADD_DEVELOPMENT_CARD = "ADD_DEVELOPMENT_CARD";
+const SET_DEVELOPMENT_CARD_AS_ACTIVE = "SET_DEVELOPMENT_CARD_AS_ACTIVE";
 
 export const PlayersContext = createContext({
   state: { ...initialState },
@@ -70,10 +84,13 @@ export const PlayersContext = createContext({
   setPlayerAsActive: () => {},
   setPlayerScore: () => {},
   setPlayersToInitialState: () => {},
-  updatePlayersSettlements: () => {},
+  addPlayerSettlement: () => {},
+  updateSettlementToCity: () => {},
   updatePlayersRoads: () => {},
   addResourceCard: () => {},
   removeResourceCard: () => {},
+  addDevelopmentCard: () => {},
+  updatePlayersOnFinishedTurn: () => {},
 });
 
 const reducer = (state = initialState, action) => {
@@ -109,7 +126,7 @@ const reducer = (state = initialState, action) => {
         },
       };
     }
-    case UPDATE_PLAYERS_SETTLEMENTS:
+    case ADD_PLAYER_SETTLEMENT:
       return {
         ...state,
         [action.payload.player]: {
@@ -117,6 +134,31 @@ const reducer = (state = initialState, action) => {
           settlements: [
             ...state[action.payload.player].settlements,
             action.payload.settlementId,
+          ],
+        },
+      };
+
+    case REMOVE_PLAYER_SETTLEMENT: {
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          cities: [
+            ...state[action.payload.player].cities.filter(
+              (city) => city !== action.payload.settlementId
+            ),
+          ],
+        },
+      };
+    }
+    case ADD_PLAYER_CITY:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          cities: [
+            ...state[action.payload.player].cities,
+            action.payload.cityId,
           ],
         },
       };
@@ -152,8 +194,36 @@ const reducer = (state = initialState, action) => {
             [action.payload.resourceType]:
               state[action.payload.player].resourceCards[
                 action.payload.resourceType
-              ] - action.payload.value,
+              ] - action.payload.amount,
           },
+        },
+      };
+    case ADD_DEVELOPMENT_CARD:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          developmentCards: [
+            ...state[action.payload.player].developmentCards,
+            {
+              type: action.payload.developmentCardType,
+              isActive: false,
+              isUsed: false,
+            },
+          ],
+        },
+      };
+    case SET_DEVELOPMENT_CARD_AS_ACTIVE:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          developmentCards: [
+            ...state[action.payload.player].developmentCards.map((card) => ({
+              ...card,
+              isActive: true,
+            })),
+          ],
         },
       };
   }
@@ -188,15 +258,45 @@ const PlayersProvider = ({ children }) => {
     (player) => player.name.length > 0
   );
 
-  const updatePlayersSettlements = (settlementId) => {
+  const addPlayerSettlement = (settlementId) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
     dispatch({
-      type: UPDATE_PLAYERS_SETTLEMENTS,
+      type: ADD_PLAYER_SETTLEMENT,
       payload: {
         player: activePlayer,
         settlementId,
+      },
+    });
+  };
+
+  const updateSettlementToCity = (settlementId) => {
+    removePlayerSettlement(settlementId);
+    addPlayerCity(settlementId);
+  };
+  const removePlayerSettlement = (settlementId) => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    dispatch({
+      type: REMOVE_PLAYER_SETTLEMENT,
+      payload: {
+        player: activePlayer,
+        settlementId,
+      },
+    });
+  };
+
+  const addPlayerCity = (cityId) => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    dispatch({
+      type: ADD_PLAYER_CITY,
+      payload: {
+        player: activePlayer,
+        cityId,
       },
     });
   };
@@ -262,30 +362,59 @@ const PlayersProvider = ({ children }) => {
       },
     });
   };
-  const removeResourceCard = (resourceType, playerName, amount) => {
+  const removeResourceCard = (resourceType, playerName, amount = 1) => {
     const player = Object.keys(players).find(
       (key) => players[key].name === playerName
     );
-    const value = amount ? amount : 1;
     dispatch({
       type: REMOVE_RESOURCE_CARD,
       payload: {
         player,
         resourceType,
-        value,
+        amount,
       },
     });
+  };
+
+  const addDevelopmentCard = (developmentCardType, playerName) => {
+    const player = Object.keys(players).find(
+      (key) => players[key].name === playerName
+    );
+
+    dispatch({
+      type: ADD_DEVELOPMENT_CARD,
+      payload: {
+        player,
+        developmentCardType,
+      },
+    });
+  };
+  const updatePlayersOnFinishedTurn = () => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+    dispatch({
+      type: SET_DEVELOPMENT_CARD_AS_ACTIVE,
+      payload: {
+        player: activePlayer,
+      },
+    });
+    changeActivePlayer();
   };
 
   const value = {
     players,
     filteredPlayers,
     initializePlayers,
-    updatePlayersSettlements,
-    updatePlayersRoads,
-    changeActivePlayer,
+    addPlayerSettlement,
     addResourceCard,
     removeResourceCard,
+    addPlayerCity,
+    updatePlayersRoads,
+    changeActivePlayer,
+    updateSettlementToCity,
+    addDevelopmentCard,
+    updatePlayersOnFinishedTurn,
   };
 
   return (

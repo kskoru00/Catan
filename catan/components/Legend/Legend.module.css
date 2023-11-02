@@ -1,5 +1,6 @@
 .container {
   width: 250px;
+  height: 230px;
   border: 2px solid var(--brown);
   border-radius: 5px;
   padding: 12px;
@@ -18,7 +19,15 @@
   align-items: center;
 }
 .elementContainer:not(:last-child) {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+.symbolContainer {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
 }
 .polygon {
   width: 15px;
@@ -26,14 +35,18 @@
   display: inline-block;
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
   background-color: var(--dark-brown);
-  margin-right: 12px;
 }
 .settlement {
-  width: 13px;
-  height: 13px;
+  width: 10px;
+  height: 10px;
   border: none;
   background-color: var(--black);
-  margin-right: 12px;
+}
+.city {
+  width: 18px;
+  height: 12px;
+  border: none;
+  background-color: var(--black);
 }
 .orange {
   background-color: var(--dark-orange);

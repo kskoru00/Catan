@@ -1,14 +1,14 @@
 .container {
-  width: 510px;
-  height: 467px;
+  width: 520px;
+  height: 471px;
 }
 .row {
   display: flex;
   justify-content: center;
 }
 .row:not(:last-child) {
-  margin-bottom: 13px;
+  margin-bottom: 5px;
 }
 .row:nth-child(even) {
-  margin-bottom: 53px;
+  margin-bottom: 40px;
 }

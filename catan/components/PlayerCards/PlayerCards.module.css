@@ -1,0 +1,84 @@
+.wrapper {
+  padding: 16px;
+  border: 2px solid var(--brown);
+  border-radius: 5px;
+}
+.title {
+  margin-bottom: 24px;
+}
+.subtitle {
+  margin-bottom: 8px;
+}
+.resourceCard {
+  display: flex;
+  flex-direction: column;
+}
+
+.resourceCard:not(:last-child) {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--brown);
+}
+.developmentItem {
+  font-size: 14px;
+}
+
+.red {
+  border-color: var(--red);
+}
+.blue {
+  border-color: var(--blue);
+}
+.white {
+  border-color: var(--white);
+}
+.orange {
+  border-color: var(--orange);
+}
+.button {
+  height: 20px;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  cursor: pointer;
+  color: var(--white);
+  border: none;
+  border-radius: 5px;
+  margin-left: 16px;
+}
+.button:hover {
+  transform: scale(1.1);
+}
+.button:disabled {
+  opacity: 0.6;
+}
+.button:disabled:hover {
+  transform: scale(1);
+}
+
+.button.red {
+  background-color: var(--red);
+}
+.button.blue {
+  background-color: var(--blue);
+}
+.button.white {
+  background-color: var(--white);
+  color: var(--dark-brown);
+}
+.button.orange {
+  background-color: var(--orange);
+}
+.container {
+  margin-top: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+.developmentCardsContainer {
+  width: 150px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+}

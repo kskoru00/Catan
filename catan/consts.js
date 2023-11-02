@@ -32,7 +32,7 @@ export const terrainTypes = [
     id: 1,
     name: "forest",
     amount: 4,
-    produce: "wool",
+    produce: "lumber",
     color: "green",
   },
   {
@@ -108,3 +108,6 @@ export const resourcesForBuild = {
     grain: 1,
   },
 };
+
+export const MAX_AMOUNT_KNIGHT_CARDS = 14;
+export const MAX_AMOUNT_VICTORY_POINT_CARDS = 5;

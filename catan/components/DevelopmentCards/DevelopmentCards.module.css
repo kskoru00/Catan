@@ -1,0 +1,11 @@
+.title {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.developmentInfo {
+  font-size: 12px;
+  display: block;
+}
+.developmentInfoContainer {
+  margin-bottom: 6px;
+}
