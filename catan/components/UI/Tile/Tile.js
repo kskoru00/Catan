@@ -20,7 +20,7 @@ const Tile = ({ id, onClick }) => {
     if (unactiveTile) {
       toggleTileIsActive(unactiveTile.id);
     }
-    if (id !== 7) {
+    if (tile.tokenNumber !== 7) {
       toggleTileIsActive(id);
     }
 

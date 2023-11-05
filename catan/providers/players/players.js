@@ -3,7 +3,6 @@ import { createContext, useReducer } from "react";
 import { Players, terrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
-import Settlement from "components/UI/Settlement";
 
 const terrainResources = terrainTypes.map((terrain) => terrain.produce);
 const resourceCards = {};
@@ -12,11 +11,6 @@ terrainResources.forEach((resource) => {
     resourceCards[resource] = 0;
   }
 });
-
-/*const developmentCards = {
-  knight: [],
-  victoryPoints: [],
-};*/
 
 const initialState = {
   [Players.playerOne]: {
@@ -76,6 +70,7 @@ const ADD_RESOURCE_CARD = "ADD_RESOURCE_CARD";
 const REMOVE_RESOURCE_CARD = "REMOVE_RESOURCE_CARD";
 const ADD_DEVELOPMENT_CARD = "ADD_DEVELOPMENT_CARD";
 const SET_DEVELOPMENT_CARD_AS_ACTIVE = "SET_DEVELOPMENT_CARD_AS_ACTIVE";
+const SET_DEVELOPMENT_CARD_AS_USED = "SET_DEVELOPMENT_CARD_AS_USED";
 
 export const PlayersContext = createContext({
   state: { ...initialState },
@@ -91,6 +86,7 @@ export const PlayersContext = createContext({
   removeResourceCard: () => {},
   addDevelopmentCard: () => {},
   updatePlayersOnFinishedTurn: () => {},
+  setDevelopmentCardAsUsed: () => {},
 });
 
 const reducer = (state = initialState, action) => {
@@ -143,9 +139,9 @@ const reducer = (state = initialState, action) => {
         ...state,
         [action.payload.player]: {
           ...state[action.payload.player],
-          cities: [
-            ...state[action.payload.player].cities.filter(
-              (city) => city !== action.payload.settlementId
+          settlements: [
+            ...state[action.payload.player].settlements.filter(
+              (settlement) => settlement !== action.payload.settlementId
             ),
           ],
         },
@@ -223,6 +219,23 @@ const reducer = (state = initialState, action) => {
               ...card,
               isActive: true,
             })),
+          ],
+        },
+      };
+    case SET_DEVELOPMENT_CARD_AS_USED:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          developmentCards: [
+            ...state[action.payload.player].developmentCards.map((card, i) =>
+              i === action.payload.position
+                ? {
+                    ...card,
+                    isUsed: true,
+                  }
+                : { ...card }
+            ),
           ],
         },
       };
@@ -402,6 +415,26 @@ const PlayersProvider = ({ children }) => {
     changeActivePlayer();
   };
 
+  const setDevelopmentCardAsUsed = () => {
+    const activePlayer = Object.keys(players).find(
+      (key) => players[key].isActive
+    );
+
+    const position = filteredPlayers
+      .find((player) => player.isActive)
+      .developmentCards.findIndex(
+        (card) => card.type === "knights" && card.isActive && !card.isUsed
+      );
+
+    dispatch({
+      type: SET_DEVELOPMENT_CARD_AS_USED,
+      payload: {
+        player: activePlayer,
+        position,
+      },
+    });
+  };
+
   const value = {
     players,
     filteredPlayers,
@@ -415,6 +448,7 @@ const PlayersProvider = ({ children }) => {
     updateSettlementToCity,
     addDevelopmentCard,
     updatePlayersOnFinishedTurn,
+    setDevelopmentCardAsUsed,
   };
 
   return (

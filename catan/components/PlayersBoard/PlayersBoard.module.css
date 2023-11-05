@@ -1,5 +1,5 @@
 .container {
-  width: 200px;
+  width: 232px;
   margin-bottom: 54px;
 }
 .title {
@@ -42,4 +42,8 @@
 }
 .orange {
   background-color: var(--orange);
+}
+.specialCards {
+  width: 20px;
+  margin-left: 8px;
 }

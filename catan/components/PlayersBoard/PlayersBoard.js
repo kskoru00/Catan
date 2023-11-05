@@ -2,7 +2,7 @@ import { usePlayersContext } from "providers/hooks";
 
 import classes from "./PlayersBoard.module.css";
 
-const PlayersBoard = () => {
+const PlayersBoard = ({ longestArmyOwner, longestRoadOwner }) => {
   const { filteredPlayers } = usePlayersContext();
 
   return (
@@ -25,6 +25,12 @@ const PlayersBoard = () => {
             <span
               className={`${classes.bigDot} ${classes[player.color]}`}
             ></span>
+            <span className={classes.specialCards}>
+              {longestArmyOwner?.name === player.name && <span>LA</span>}
+            </span>
+            <span className={classes.specialCards}>
+              {longestRoadOwner?.name === player.name && <span>LR</span>}
+            </span>
           </div>
         </div>
       ))}

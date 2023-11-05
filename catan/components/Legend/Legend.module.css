@@ -1,18 +1,18 @@
 .container {
-  width: 250px;
-  height: 230px;
+  width: 280px;
+  height: 240px;
   border: 2px solid var(--brown);
   border-radius: 5px;
   padding: 12px;
+}
+.title {
+  margin-bottom: 32px;
 }
 .wrapper {
   height: 150px;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-}
-.title {
-  margin-bottom: 32px;
 }
 .elementContainer {
   display: flex;

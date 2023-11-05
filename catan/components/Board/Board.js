@@ -11,6 +11,8 @@ import { generateRandomNumber } from "helpers";
 import {
   terrainTypes,
   resourcesForBuild,
+  MIN_LONGEST_ARMY,
+  MIN_LONGEST_ROAD,
   MAX_AMOUNT_KNIGHT_CARDS,
   MAX_AMOUNT_VICTORY_POINT_CARDS,
 } from "consts";
@@ -20,11 +22,11 @@ import TilesLayer from "components/BoardLayers/TilesLayer";
 import RoadsLayer from "components/BoardLayers/RoadsLayer";
 import Legend from "components/Legend";
 import PlayersBoard from "components/PlayersBoard";
+import PlayerCards from "components/PlayerCards";
 import Button from "components/UI/Button";
 import Error from "components/UI/Error";
 
 import classes from "./Board.module.css";
-import PlayerCards from "components/PlayerCards";
 
 const Board = () => {
   const router = useRouter();
@@ -37,12 +39,14 @@ const Board = () => {
     removeResourceCard,
     addDevelopmentCard,
     updatePlayersOnFinishedTurn,
+    setDevelopmentCardAsUsed,
   } = usePlayersContext();
   const { tiles, setInitialTiles } = useTileContext();
 
   const activePlayer = filteredPlayers.find((player) => player.isActive);
 
   const [diceRoll, setDiceRoll] = useState(new Array(2).fill(null));
+  const isDiceRolled = diceRoll.every((dice) => dice !== null);
 
   const [playerToSelectResources, setPlayerToSelectResources] = useState(null);
 
@@ -51,7 +55,13 @@ const Board = () => {
     setAmountOfRemainingResourcesForPlayers,
   ] = useState([0, 0, 0]);
 
+  const [viewBeforeKnight, setViewBeforeKnight] = useState(null);
+
   const [panelMessage, setPanelMessage] = useState("");
+
+  const [longestArmyOwner, setLongestArmyOwner] = useState(null);
+  const [longestRoadOwner, setLongestRoadOwner] = useState(null);
+  const [longestRoadLength, setLongestRoadLength] = useState(MIN_LONGEST_ROAD);
 
   useEffect(() => {
     if (filteredPlayers.length === 0) {
@@ -109,7 +119,7 @@ const Board = () => {
       setPanelMessage(
         `Only ${playersWhoseSettlementIsOccupied[0].name} has property on choosen tile.`
       );
-      chooseRandomForRobber(playersWhoseSettlementIsOccupied[0]);
+      removeRandomResource(playersWhoseSettlementIsOccupied[0]);
     } else if (playersWhoseSettlementIsOccupied.length > 1) {
       setPanelMessage(
         <div>
@@ -118,7 +128,7 @@ const Board = () => {
             {playersWhoseSettlementIsOccupied.map((el, i) => (
               <Button
                 onClick={() => {
-                  chooseRandomForRobber(el);
+                  removeRandomResource(el);
                 }}
                 key={i}
                 value={el.name}
@@ -130,7 +140,7 @@ const Board = () => {
     }
   };
 
-  const chooseRandomForRobber = (player) => {
+  const removeRandomResource = (player) => {
     const cards = player.resourceCards;
     const availableCards = Object.entries(cards).filter(
       ([_, value]) => value > 0
@@ -140,7 +150,42 @@ const Board = () => {
     setUpdateMessage(
       `Removed random resource ${availableCards[random][0]} for player ${player.name}`
     );
+    if (viewBeforeKnight) {
+      changeView(viewBeforeKnight);
+      setViewBeforeKnight(null);
+      return;
+    }
     changeView("tradeView");
+  };
+
+  const handleKnight = () => {
+    setDevelopmentCardAsUsed();
+    setViewBeforeKnight(view.activeView);
+    changeView("robberViewPhase2");
+    changeActiveLayer("tilesLayer");
+
+    const countUsedKnights =
+      filteredPlayers
+        .find((player) => player.isActive)
+        .developmentCards.filter(
+          (card) => card.type === "knights" && card.isUsed
+        ).length + 1;
+
+    const maxUsedKnights = Math.max(
+      ...filteredPlayers.map(
+        (player) =>
+          player.developmentCards.filter(
+            (card) => card.type === "knights" && card.isUsed
+          ).length
+      )
+    );
+
+    if (
+      countUsedKnights >= MIN_LONGEST_ARMY &&
+      countUsedKnights > maxUsedKnights
+    ) {
+      setLongestArmyOwner(activePlayer);
+    }
   };
 
   const handleActiveRobber = () => {
@@ -191,7 +236,9 @@ const Board = () => {
     const rolledTile = newDiceRoll.reduce((sum, curr) => sum + curr, 0);
 
     if (rolledTile === 7) {
-      handleActiveRobber();
+      setTimeout(() => {
+        handleActiveRobber();
+      }, 2000);
 
       return;
     }
@@ -239,7 +286,7 @@ const Board = () => {
     setTimeout(() => {
       setDiceRoll(diceRoll.map(() => null));
       changeView("tradeView");
-    }, 3000);
+    }, 2000);
   };
   const handleBuildSettlementOrCity = () => {
     changeActiveLayer("settlementsLayer");
@@ -282,14 +329,14 @@ const Board = () => {
     const countOfTakenKnightCards = filteredPlayers.reduce(
       (count, player) =>
         count +
-        player.developmentCards.filter((card) => card.name === "knights")
+        player.developmentCards.filter((card) => card.type === "knights")
           .length,
       0
     );
     const countOfTakenVictoryPointCards = filteredPlayers.reduce(
       (count, player) =>
         count +
-        player.developmentCards.filter((card) => card.name === "victoryPoint")
+        player.developmentCards.filter((card) => card.type === "victoryPoint")
           .length,
       0
     );
@@ -297,13 +344,15 @@ const Board = () => {
     let cardType = "";
 
     if (
-      countOfTakenKnightCards > MAX_AMOUNT_KNIGHT_CARDS &&
-      countOfTakenVictoryPointCards > MAX_AMOUNT_VICTORY_POINT_CARDS
+      countOfTakenKnightCards >= MAX_AMOUNT_KNIGHT_CARDS &&
+      countOfTakenVictoryPointCards >= MAX_AMOUNT_VICTORY_POINT_CARDS
     ) {
       setError("There are no more available development cards");
-    } else if (countOfTakenKnightCards > MAX_AMOUNT_KNIGHT_CARDS) {
+    } else if (countOfTakenKnightCards >= MAX_AMOUNT_KNIGHT_CARDS) {
       cardType = "victoryPoint";
-    } else if (countOfTakenVictoryPointCards > MAX_AMOUNT_VICTORY_POINT_CARDS) {
+    } else if (
+      countOfTakenVictoryPointCards >= MAX_AMOUNT_VICTORY_POINT_CARDS
+    ) {
       cardType = "knights";
     } else {
       const random = generateRandomNumber(0, 1);
@@ -314,6 +363,7 @@ const Board = () => {
     Object.entries(resourcesForBuild.developmentCard).forEach(([key, value]) =>
       removeResourceCard(key, activePlayer.name, value)
     );
+    changeView("buildView");
   };
 
   const handleChangeViewToBuildPhase = () => {
@@ -345,9 +395,120 @@ const Board = () => {
   };
 
   const handleFinishedTurn = () => {
+    setLongestRoad();
     updatePlayersOnFinishedTurn();
     changeView("resourceProductionView");
-    console.log(filteredPlayers);
+  };
+
+  const setLongestRoad = () => {
+    if (
+      longestRoadOwner &&
+      longestRoadOwner !== filteredPlayers.find((player) => player.isActive)
+    ) {
+      const playerLongestRoad = getPlayerLongestRoad(longestRoadOwner);
+
+      if (playerLongestRoad < longestRoadLength) {
+        const playersRoadLength = filteredPlayers.map((player) =>
+          player.name === longestRoadOwner.name
+            ? playerLongestRoad
+            : getPlayerLongestRoad(player)
+        );
+
+        const maxRoadLength = Math.max(...playersRoadLength);
+
+        if (
+          playerLongestRoad === maxRoadLength &&
+          playerLongestRoad >= MIN_LONGEST_ROAD
+        ) {
+          setLongestRoadLength(playerLongestRoad);
+        } else if (
+          playersRoadLength.filter((road) => road === maxRoadLength).length ===
+            1 &&
+          maxRoadLength >= MIN_LONGEST_ROAD
+        ) {
+          const index = playersRoadLength.findIndex(
+            (road) => road === maxRoadLength
+          );
+          setLongestRoadLength(playerLongestRoad);
+          setLongestRoadOwner(filteredPlayers[index]);
+        } else {
+          setLongestRoadLength(MIN_LONGEST_ROAD);
+          setLongestRoadOwner(null);
+        }
+      }
+    }
+
+    if (
+      (!longestRoadOwner && longestRoadLength <= activePlayer.roads.length) ||
+      longestRoadLength < activePlayer.roads.length
+    ) {
+      const playerLongestRoad = getPlayerLongestRoad(activePlayer);
+
+      if (
+        (!longestRoadOwner && playerLongestRoad >= longestRoadLength) ||
+        (longestRoadOwner && playerLongestRoad > longestRoadLength)
+      ) {
+        setLongestRoadOwner(activePlayer);
+        setLongestRoadLength(playerLongestRoad);
+      }
+    }
+  };
+
+  const getPlayerLongestRoad = (player) => {
+    let longestRoad = 0;
+
+    player.roads.forEach((playerRoad) => {
+      const roadsMappedByDistance = [[playerRoad]];
+
+      let isComplete = false;
+
+      while (!isComplete) {
+        const remainingRoads = player.roads.filter(
+          (road) => !roadsMappedByDistance.flat().find((el) => el === road)
+        );
+        const nextNeighbours = remainingRoads.filter((road) =>
+          roadsMappedByDistance[roadsMappedByDistance.length - 1].find(
+            (neighbour) =>
+              road.split("-")[0] === neighbour.split("-")[1] ||
+              road.split("-")[1] === neighbour.split("-")[1] ||
+              road.split("-")[0] === neighbour.split("-")[0] ||
+              road.split("-")[1] === neighbour.split("-")[0]
+          )
+        );
+
+        const findConnection = nextNeighbours
+          .map((el) => el.split("-"))
+          .flat()
+          .filter((el) =>
+            roadsMappedByDistance[roadsMappedByDistance.length - 1]
+              .map((el) => el.split("-"))
+              .flat()
+              .some((num) => num === el)
+          );
+
+        if (
+          nextNeighbours.length === 0 ||
+          filteredPlayers.find(
+            (play) =>
+              play.name !== player.name &&
+              play.settlements.some(
+                (settlement) => settlement === Number(findConnection)
+              )
+          )
+        ) {
+          isComplete = true;
+          if (roadsMappedByDistance.length > longestRoad) {
+            longestRoad = roadsMappedByDistance.length;
+          }
+        }
+
+        if (nextNeighbours.length > 0 && isComplete === false) {
+          roadsMappedByDistance.push(nextNeighbours);
+        }
+      }
+    });
+
+    return longestRoad;
   };
 
   const handleStartGame = () => {
@@ -375,7 +536,7 @@ const Board = () => {
           <h3 className={classes.title}>Resource production :</h3>
           <div className={classes.panelWrapper}>
             <Button
-              isDisabled={diceRoll.every((dice) => dice !== null)}
+              isDisabled={isDiceRolled}
               onClick={handleDiceRoll}
               value="Roll dice"
             />
@@ -386,6 +547,10 @@ const Board = () => {
               <span>{diceRoll[1]}</span>
             </div>
           </div>
+          {!isDiceRolled &&
+            activePlayer.developmentCards.some(
+              (card) => card.type === "knights" && card.isActive && !card.isUsed
+            ) && <Button onClick={handleKnight} value="Use knight"></Button>}
         </div>
       );
     } else if (view.activeView === "robberView") {
@@ -430,6 +595,10 @@ const Board = () => {
                 value="Go to build phase"
                 onClick={handleChangeViewToBuildPhase}
               />
+              {activePlayer.developmentCards.some(
+                (card) =>
+                  card.type === "knights" && card.isActive && !card.isUsed
+              ) && <Button onClick={handleKnight} value="Use knight"></Button>}
             </>
           )}
           {view.activeView === "tradeViewPhase2" && (
@@ -442,6 +611,9 @@ const Board = () => {
         <div className={classes.panelContainer}>
           <h3 className={classes.title}>Build :</h3>
           {panelMessage}
+          {activePlayer.developmentCards.some(
+            (card) => card.type === "knights" && card.isActive && !card.isUsed
+          ) && <Button onClick={handleKnight} value="Use knight"></Button>}
           <Button onClick={handleFinishedTurn} value="Finish your turn" />
         </div>
       );
@@ -451,7 +623,10 @@ const Board = () => {
     <div className={classes.container}>
       <div className={classes.wrapper}>
         <div className={classes.playersContainer}>
-          <PlayersBoard />
+          <PlayersBoard
+            longestArmyOwner={longestArmyOwner}
+            longestRoadOwner={longestRoadOwner}
+          />
           {((view.activeView === "robberView" &&
             playerToSelectResources !== null) ||
             view.activeView === "tradeView" ||

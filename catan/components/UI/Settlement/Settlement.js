@@ -1,12 +1,14 @@
+import { useState } from "react";
+
 import { usePlayersContext, useViewsContext } from "providers/hooks";
 
-import classes from "./Settlement.module.css";
 import {
   MAX_AMOUNT_CITIES,
   MAX_AMOUNT_SETTLEMENTS,
   resourcesForBuild,
 } from "consts";
-import { useState } from "react";
+
+import classes from "./Settlement.module.css";
 
 const Settlement = ({ id, neighbours }) => {
   const {
@@ -17,7 +19,7 @@ const Settlement = ({ id, neighbours }) => {
   } = usePlayersContext();
   const { view, changeActiveLayer, setError } = useViewsContext();
 
-  const [typeOfBuild, setTypeOfBuild] = useState(
+  const [type, setType] = useState(
     filteredPlayers.find((player) => player.cities.some((city) => city === id))
       ? "city"
       : "settlement"
@@ -26,80 +28,85 @@ const Settlement = ({ id, neighbours }) => {
   const color = filteredPlayers.find(
     (player) =>
       player.settlements.some((settlement) => settlement === id) ||
-      player.cites?.some((city) => city === id)
+      player.cities.some((city) => city === id)
   )?.color;
 
   const activePlayer = filteredPlayers.find((player) => player.isActive);
 
   const handleClick = () => {
-    const isNeighboursSettlementSettled = neighbours.find((el) =>
-      filteredPlayers.find((player) =>
-        player.settlements.find((settlement) => settlement === el)
+    const isThereSettledNeighbour = neighbours.some((el) =>
+      filteredPlayers.some((player) =>
+        player.settlements.some((settlement) => settlement === el)
       )
     );
     const isSettlementSettled = filteredPlayers
       .filter((player) => player.name !== activePlayer.name)
-      .some((player) =>
-        player.settlements.some((settlement) => settlement === id)
+      .some(
+        (player) =>
+          player.settlements.some((settlement) => settlement === id) ||
+          player.cities.some((city) => city === id)
       );
 
-    if (isSettlementSettled || isNeighboursSettlementSettled) {
-      setError("You can't select this settlement.");
+    if (isSettlementSettled || isThereSettledNeighbour) {
+      setError(`You can't select this ${type}`);
       return;
     }
 
-    if (
-      view.activeView === "buildView" &&
-      activePlayer.settlements.some((settlement) => settlement === id)
-    ) {
-      if (activePlayer.cities.length > MAX_AMOUNT_CITIES) {
-        setError("You have no more cities available.");
-        return;
-      }
-      const hasPlayerEnoughResources = Object.entries(
-        resourcesForBuild.city
-      ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
-
-      if (!hasPlayerEnoughResources) {
-        setError(
-          "You don't have enough resources for building city. Please go back to trade or finish your turn."
-        );
-        return;
-      }
-      Object.entries(resourcesForBuild.city).forEach(([key, value]) =>
-        removeResourceCard(key, activePlayer.name, value)
-      );
-      updateSettlementToCity(id);
-      setTypeOfBuild("city");
-      changeActiveLayer("none");
-      return;
-    }
-    if (activePlayer.settlements.length > MAX_AMOUNT_SETTLEMENTS) {
-      setError("You have no more settlements available.");
+    if (activePlayer.cities.some((city) => city === id)) {
+      setError("This is already your city. Please select something else.");
       return;
     }
 
-    if (view.activeView === "buildView") {
-      const hasPlayerEnoughResources = Object.entries(
-        resourcesForBuild.settlement
-      ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
-
-      if (!hasPlayerEnoughResources) {
-        setError(
-          "You don't have enough resources for building settlement. Please go back to trade or finish your turn."
-        );
-        return;
-      }
-
-      Object.entries(resourcesForBuild.settlement).forEach(([key, value]) =>
-        removeResourceCard(key, activePlayer.name, value)
-      );
-      changeActiveLayer("none");
-    }
-    setError("");
-    addPlayerSettlement(id);
     if (view.activeView === "setupGameView") {
+      if (activePlayer.settlements.some((settlement) => settlement === id)) {
+        setError("This settlement already belongs to you.");
+        return;
+      }
+      setError("");
+      addPlayerSettlement(id);
       changeActiveLayer("roadsLayer");
+    } else if (view.activeView === "buildView") {
+      const typeForBuild = activePlayer.settlements.some(
+        (settlement) => settlement === id
+      )
+        ? "city"
+        : "settlement";
+
+      if (
+        (typeForBuild === "city" &&
+          activePlayer.cities.length >= MAX_AMOUNT_CITIES) ||
+        (typeForBuild === "settlement" &&
+          activePlayer.settlements.length >= MAX_AMOUNT_SETTLEMENTS)
+      ) {
+        setError(`You don't have ${typeForBuild} elements available.`);
+
+        return;
+      }
+
+      const hasPlayerEnoughResources = Object.entries(
+        resourcesForBuild[typeForBuild]
+      ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
+
+      if (!hasPlayerEnoughResources) {
+        setError(
+          `You don't have enough resources for building ${type}. Please go back to trade or finish your turn.`
+        );
+        return;
+      }
+
+      Object.entries(resourcesForBuild[typeForBuild]).forEach(([key, value]) =>
+        removeResourceCard(key, activePlayer.name, value)
+      );
+      setError("");
+
+      if (typeForBuild === "city") {
+        updateSettlementToCity(id);
+        setType("city");
+      } else {
+        addPlayerSettlement(id);
+      }
+
+      return;
     }
   };
 
@@ -108,7 +115,7 @@ const Settlement = ({ id, neighbours }) => {
       <button
         disabled={view.activeLayer !== "settlementsLayer"}
         onClick={handleClick}
-        className={`${classes[typeOfBuild]} ${classes[color]}`}
+        className={`${classes[type]} ${classes[color]}`}
       ></button>
     </div>
   );

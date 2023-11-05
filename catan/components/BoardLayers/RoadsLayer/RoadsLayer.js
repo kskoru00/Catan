@@ -17,7 +17,7 @@ const RoadsLayer = () => {
         roads.map((row, i) => (
           <div key={i} className={classes.row}>
             {row.map((road, j) => (
-              <Road key={road} id={road} row={i} position={j} />
+              <Road key={road} id={road} row={i} positionInRow={j} />
             ))}
           </div>
         ))}
