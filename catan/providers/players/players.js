@@ -6,6 +6,7 @@ import { generateRandomColor, generateRandomNumber } from "helpers";
 
 const terrainResources = terrainTypes.map((terrain) => terrain.produce);
 const resourceCards = {};
+
 terrainResources.forEach((resource) => {
   if (resource !== "nothing") {
     resourceCards[resource] = 0;
@@ -71,6 +72,7 @@ const REMOVE_RESOURCE_CARD = "REMOVE_RESOURCE_CARD";
 const ADD_DEVELOPMENT_CARD = "ADD_DEVELOPMENT_CARD";
 const SET_DEVELOPMENT_CARD_AS_ACTIVE = "SET_DEVELOPMENT_CARD_AS_ACTIVE";
 const SET_DEVELOPMENT_CARD_AS_USED = "SET_DEVELOPMENT_CARD_AS_USED";
+const RESET_PLAYER = "RESET_PLAYER";
 
 export const PlayersContext = createContext({
   state: { ...initialState },
@@ -87,6 +89,7 @@ export const PlayersContext = createContext({
   addDevelopmentCard: () => {},
   updatePlayersOnFinishedTurn: () => {},
   setDevelopmentCardAsUsed: () => {},
+  initializePlayersForNewRound: () => {},
 });
 
 const reducer = (state = initialState, action) => {
@@ -237,6 +240,19 @@ const reducer = (state = initialState, action) => {
                 : { ...card }
             ),
           ],
+        },
+      };
+    case RESET_PLAYER:
+      return {
+        ...state,
+        [action.payload.player]: {
+          ...state[action.payload.player],
+          isActive: false,
+          settlements: [],
+          cities: [],
+          roads: [],
+          resourceCards,
+          developmentCards: [],
         },
       };
   }
@@ -435,6 +451,33 @@ const PlayersProvider = ({ children }) => {
     });
   };
 
+  const initializePlayersForNewRound = () => {
+    filteredPlayers.forEach((player) => {
+      const key = Object.keys(players).find(
+        (key) => players[key].name === player.name
+      );
+      dispatch({
+        type: RESET_PLAYER,
+        payload: {
+          player: key,
+        },
+      });
+    });
+
+    const randomPlayerPosition = generateRandomNumber(
+      0,
+      filteredPlayers.length - 1
+    );
+    const activePlayer = Object.keys(players)[randomPlayerPosition];
+
+    dispatch({
+      type: SET_PLAYER_AS_ACTIVE,
+      payload: {
+        player: activePlayer,
+      },
+    });
+  };
+
   const value = {
     players,
     filteredPlayers,
@@ -449,6 +492,7 @@ const PlayersProvider = ({ children }) => {
     addDevelopmentCard,
     updatePlayersOnFinishedTurn,
     setDevelopmentCardAsUsed,
+    initializePlayersForNewRound,
   };
 
   return (

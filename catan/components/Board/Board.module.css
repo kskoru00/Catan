@@ -14,7 +14,7 @@
 }
 .layersContainer {
   height: 500px;
-  margin-top: 108px;
+  margin-top: 48px;
   display: flex;
   justify-content: center;
 }
@@ -39,18 +39,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 32px;
 }
 .panel {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   position: relative;
+}
+
+.panelActionsContainer {
+  width: 450px;
+  display: flex;
+  justify-content: space-around;
 }
 .updatePanel {
   position: absolute;
   margin-right: 32px;
   top: 50%;
-  left: 75%;
+  right: 5%;
 }
 .title {
   margin-bottom: 16px;

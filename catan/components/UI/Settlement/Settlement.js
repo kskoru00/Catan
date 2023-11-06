@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { usePlayersContext, useViewsContext } from "providers/hooks";
 
@@ -19,11 +19,13 @@ const Settlement = ({ id, neighbours }) => {
   } = usePlayersContext();
   const { view, changeActiveLayer, setError } = useViewsContext();
 
-  const [type, setType] = useState(
-    filteredPlayers.find((player) => player.cities.some((city) => city === id))
-      ? "city"
-      : "settlement"
-  );
+  const [type, setType] = useState("settlement");
+
+  useEffect(() => {
+    if (view.activeView === "startGameView") {
+      setType("settlement");
+    }
+  }, [view.activeView]);
 
   const color = filteredPlayers.find(
     (player) =>

@@ -9,6 +9,7 @@ export const TilesContext = createContext({
   tiles: { ...initialState },
   setInitialTiles: () => {},
   toggleTileIsActive: () => {},
+  initializeTilesForNewRound: () => {},
 });
 
 const TilesProvider = ({ children }) => {
@@ -48,12 +49,32 @@ const TilesProvider = ({ children }) => {
       return newTiles;
     });
   };
+  const initializeTilesForNewRound = () => {
+    tiles.forEach((row, i) => {
+      row.forEach((_, j) => {
+        setTiles((prevTiles) => {
+          const newBoardTiles = prevTiles.map((row) => [...row]);
+          const terrainId = null;
+          const tokenNumber = null;
+
+          newBoardTiles[i][j] = {
+            ...newBoardTiles[i][j],
+            terrainId,
+            tokenNumber,
+          };
+
+          return newBoardTiles;
+        });
+      });
+    });
+  };
 
   const value = {
     tiles,
     setTiles,
     setInitialTiles,
     toggleTileIsActive,
+    initializeTilesForNewRound,
   };
 
   return (

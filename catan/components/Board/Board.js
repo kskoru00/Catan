@@ -8,10 +8,11 @@ import {
 } from "providers/hooks";
 
 import { generateRandomNumber } from "helpers";
+
 import {
   terrainTypes,
   resourcesForBuild,
-  MIN_LONGEST_ARMY,
+  MIN_LARGEST_ARMY,
   MIN_LONGEST_ROAD,
   MAX_AMOUNT_KNIGHT_CARDS,
   MAX_AMOUNT_VICTORY_POINT_CARDS,
@@ -27,6 +28,7 @@ import Button from "components/UI/Button";
 import Error from "components/UI/Error";
 
 import classes from "./Board.module.css";
+import SelectButton from "components/UI/SelectButton";
 
 const Board = () => {
   const router = useRouter();
@@ -40,8 +42,10 @@ const Board = () => {
     addDevelopmentCard,
     updatePlayersOnFinishedTurn,
     setDevelopmentCardAsUsed,
+    initializePlayersForNewRound,
   } = usePlayersContext();
-  const { tiles, setInitialTiles } = useTileContext();
+  const { tiles, setInitialTiles, initializeTilesForNewRound } =
+    useTileContext();
 
   const activePlayer = filteredPlayers.find((player) => player.isActive);
 
@@ -59,7 +63,7 @@ const Board = () => {
 
   const [panelMessage, setPanelMessage] = useState("");
 
-  const [longestArmyOwner, setLongestArmyOwner] = useState(null);
+  const [largestArmyOwner, setlargestArmyOwner] = useState(null);
   const [longestRoadOwner, setLongestRoadOwner] = useState(null);
   const [longestRoadLength, setLongestRoadLength] = useState(MIN_LONGEST_ROAD);
 
@@ -95,6 +99,8 @@ const Board = () => {
       if (playerToSelectResources + 1 === filteredPlayers.length) {
         changeView("robberViewPhase2");
         changeActiveLayer("tilesLayer");
+        setAmountOfRemainingResourcesForPlayers([0, 0, 0]);
+        setPlayerToSelectResources(null);
         return;
       }
       setPlayerToSelectResources(playerToSelectResources + 1);
@@ -181,10 +187,10 @@ const Board = () => {
     );
 
     if (
-      countUsedKnights >= MIN_LONGEST_ARMY &&
+      countUsedKnights >= MIN_LARGEST_ARMY &&
       countUsedKnights > maxUsedKnights
     ) {
-      setLongestArmyOwner(activePlayer);
+      setlargestArmyOwner(activePlayer);
     }
   };
 
@@ -288,7 +294,9 @@ const Board = () => {
       changeView("tradeView");
     }, 2000);
   };
+
   const handleBuildSettlementOrCity = () => {
+    setError("");
     changeActiveLayer("settlementsLayer");
     setPanelMessage(
       <>
@@ -304,6 +312,7 @@ const Board = () => {
   };
 
   const handleBuildRoad = () => {
+    setError("");
     changeActiveLayer("roadsLayer");
     setPanelMessage(
       <>
@@ -373,40 +382,33 @@ const Board = () => {
       <>
         <p className={classes.paragraph}>Choose what you want to build/buy</p>
         <div className={classes.buttonsContainer}>
-          <Button
-            onClick={handleBuildSettlementOrCity}
-            value="Settlement/City"
-          ></Button>
-          <Button onClick={handleBuildRoad} value="Road"></Button>
-          <Button
-            onClick={handleBuyDevelopmentCard}
-            value="Development card"
-          ></Button>
+          <SelectButton onClick={handleBuildSettlementOrCity}>
+            Settlement/city
+          </SelectButton>
+          <SelectButton onClick={handleBuildRoad}>Road</SelectButton>
+          <SelectButton onClick={handleBuyDevelopmentCard}>
+            Development card
+          </SelectButton>
         </div>
-        <Button
-          onClick={() => {
-            changeView("tradeView");
-          }}
-          value="Go to trade phase"
-        ></Button>
       </>
     );
     changeView("buildView");
+    setLongestRoad();
   };
 
   const handleFinishedTurn = () => {
-    setLongestRoad();
     updatePlayersOnFinishedTurn();
     changeView("resourceProductionView");
   };
 
   const setLongestRoad = () => {
+    console.log(filteredPlayers);
     if (
       longestRoadOwner &&
       longestRoadOwner !== filteredPlayers.find((player) => player.isActive)
     ) {
       const playerLongestRoad = getPlayerLongestRoad(longestRoadOwner);
-
+      console.log(playerLongestRoad);
       if (playerLongestRoad < longestRoadLength) {
         const playersRoadLength = filteredPlayers.map((player) =>
           player.name === longestRoadOwner.name
@@ -517,22 +519,68 @@ const Board = () => {
     changeActiveLayer("settlementsLayer");
   };
 
-  const getPanelView = () => {
+  const handleNewRound = () => {
+    initializePlayersForNewRound();
+    initializeTilesForNewRound();
+    setlargestArmyOwner(null);
+    setLongestRoadOwner(null);
+    setLongestRoadLength(MIN_LONGEST_ROAD);
+    setPanelMessage("");
+    changeView("startGameView");
+  };
+
+  const getPanelActionButtons = () => {
     if (view.activeView === "startGameView") {
       return <Button onClick={handleStartGame} value="Start game" />;
-    } else if (view.activeView === "setupGameView") {
+    } else if (view.activeView === "finishedGameView") {
+      return <Button onClick={handleNewRound} value="Play new round" />;
+    } else {
+      if (view.activeView === "resourceProductionView" && isDiceRolled) {
+        return;
+      }
+
       return (
-        <div className={classes.panelContainer}>
+        <div className={classes.panelActionsContainer}>
+          {activePlayer.developmentCards.some(
+            (card) => card.type === "knights" && card.isActive && !card.isUsed
+          ) && <Button onClick={handleKnight} value="Use knight"></Button>}
+
+          {view.activeView === "tradeView" && (
+            <Button
+              value="Go to build phase"
+              onClick={handleChangeViewToBuildPhase}
+            />
+          )}
+          {view.activeView === "buildView" && (
+            <>
+              <Button
+                onClick={() => {
+                  changeView("tradeView");
+                }}
+                value="Go to trade phase"
+              ></Button>
+              <Button onClick={handleFinishedTurn} value="Finish your turn" />
+            </>
+          )}
+        </div>
+      );
+    }
+  };
+
+  const getPanelView = () => {
+    if (view.activeView === "setupGameView") {
+      return (
+        <>
           <h3 className={classes.title}>Setup: </h3>
           <p>
             Please {activePlayer.name} choose{" "}
             {view.activeLayer === "settlementsLayer" ? "settlement" : "road"}{" "}
           </p>
-        </div>
+        </>
       );
     } else if (view.activeView === "resourceProductionView") {
       return (
-        <div className={classes.panelContainer}>
+        <>
           <h3 className={classes.title}>Resource production :</h3>
           <div className={classes.panelWrapper}>
             <Button
@@ -547,11 +595,7 @@ const Board = () => {
               <span>{diceRoll[1]}</span>
             </div>
           </div>
-          {!isDiceRolled &&
-            activePlayer.developmentCards.some(
-              (card) => card.type === "knights" && card.isActive && !card.isUsed
-            ) && <Button onClick={handleKnight} value="Use knight"></Button>}
-        </div>
+        </>
       );
     } else if (view.activeView === "robberView") {
       return (
@@ -580,7 +624,7 @@ const Board = () => {
       view.activeView === "tradeViewPhase2"
     ) {
       return (
-        <div className={classes.panelContainer}>
+        <>
           <h3 className={classes.title}>Trade with bank :</h3>
           {view.activeView === "tradeView" && (
             <>
@@ -591,40 +635,35 @@ const Board = () => {
                   ? `${activePlayer.name} click on resource which you want to trade`
                   : "You don't have enough resources for trading."}
               </p>
-              <Button
-                value="Go to build phase"
-                onClick={handleChangeViewToBuildPhase}
-              />
-              {activePlayer.developmentCards.some(
-                (card) =>
-                  card.type === "knights" && card.isActive && !card.isUsed
-              ) && <Button onClick={handleKnight} value="Use knight"></Button>}
             </>
           )}
           {view.activeView === "tradeViewPhase2" && (
             <p>Click on resource which you want to add</p>
           )}
-        </div>
+        </>
       );
     } else if (view.activeView === "buildView") {
       return (
-        <div className={classes.panelContainer}>
+        <>
           <h3 className={classes.title}>Build :</h3>
           {panelMessage}
-          {activePlayer.developmentCards.some(
-            (card) => card.type === "knights" && card.isActive && !card.isUsed
-          ) && <Button onClick={handleKnight} value="Use knight"></Button>}
-          <Button onClick={handleFinishedTurn} value="Finish your turn" />
-        </div>
+        </>
+      );
+    } else if (view.activeView === "finishedGameView") {
+      return (
+        <>
+          <p className={classes.paragraph}>Winner is {activePlayer.name}</p>
+        </>
       );
     }
   };
+
   return (
     <div className={classes.container}>
       <div className={classes.wrapper}>
         <div className={classes.playersContainer}>
           <PlayersBoard
-            longestArmyOwner={longestArmyOwner}
+            largestArmyOwner={largestArmyOwner}
             longestRoadOwner={longestRoadOwner}
           />
           {((view.activeView === "robberView" &&
@@ -679,7 +718,10 @@ const Board = () => {
               </Error>
             )}
           </div>
-          <div className={classes.panel}>{getPanelView()}</div>
+          <div className={classes.panel}>
+            <div className={classes.panelContainer}>{getPanelView()}</div>
+            {getPanelActionButtons()}
+          </div>
         </div>
         <Legend />
         <div className={classes.updatePanel}>

@@ -1,17 +1,3 @@
-.resourceItem {
-  border: none;
-  background: none;
-  padding: 0;
-  text-align: start;
-  font-size: 14px;
-  color: var(--dark-brown);
-}
-.resourceItem:hover {
-  color: var(--brown);
-}
 .resourceItem:not(:last-child) {
   margin-bottom: 12px;
-}
-.resourceItem:disabled:hover {
-  color: var(--dark-brown);
 }

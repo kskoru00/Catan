@@ -10,6 +10,7 @@ const Views = Object.freeze({
   tradeView: "tradeView",
   tradeViewPhase2: "tradeViewPhase2",
   buildView: "buildView",
+  finishedGameView: "finishedGameView",
 });
 
 const Layers = Object.freeze({

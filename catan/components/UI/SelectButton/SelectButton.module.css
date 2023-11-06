@@ -1,0 +1,15 @@
+.button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: start;
+  font-size: 14px;
+  color: var(--dark-brown);
+}
+.button:hover {
+  color: var(--brown);
+}
+.button:disabled:hover {
+  color: var(--dark-brown);
+}

@@ -110,7 +110,9 @@ export const resourcesForBuild = {
 };
 
 export const MIN_LONGEST_ROAD = 5;
-export const MIN_LONGEST_ARMY = 3;
+export const MIN_LARGEST_ARMY = 3;
 
 export const MAX_AMOUNT_KNIGHT_CARDS = 14;
 export const MAX_AMOUNT_VICTORY_POINT_CARDS = 5;
+
+export const MIN_SCORE_FOR_WIN = 10;
