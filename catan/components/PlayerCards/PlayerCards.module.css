@@ -1,4 +1,4 @@
-.wrapper {
+.container {
   padding: 16px;
   border: 2px solid var(--brown);
   border-radius: 5px;
@@ -9,12 +9,11 @@
 .subtitle {
   margin-bottom: 8px;
 }
-.resourceCard {
+.cards {
   display: flex;
   flex-direction: column;
 }
-
-.resourceCard:not(:last-child) {
+.cards:not(:last-child) {
   margin-bottom: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--brown);
@@ -22,7 +21,6 @@
 .developmentItem {
   font-size: 14px;
 }
-
 .red {
   border-color: var(--red);
 }
@@ -51,11 +49,11 @@
 }
 .button:disabled {
   opacity: 0.6;
+  cursor: default;
 }
 .button:disabled:hover {
   transform: scale(1);
 }
-
 .button.red {
   background-color: var(--red);
 }
@@ -69,13 +67,12 @@
 .button.orange {
   background-color: var(--orange);
 }
-.container {
-  margin-top: 12px;
+.developmentContainer {
   margin-bottom: 12px;
   display: flex;
   align-items: center;
 }
-.developmentCardsContainer {
+.knightsContainer {
   width: 150px;
   display: flex;
   flex-wrap: wrap;

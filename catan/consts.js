@@ -1,5 +1,31 @@
+export const Views = Object.freeze({
+  startGameView: "startGameView",
+  setupGameView: "setupGameView",
+  resourceProductionView: "resourceProductionView",
+  robberView: "robberView",
+  robberViewPhase2: "robberViewPhase2",
+  robberViewPhase3: "robberViewPhase3",
+  tradeView: "tradeView",
+  tradeViewPhase2: "tradeViewPhase2",
+  buildView: "buildView",
+  buildElementView: "buildElementView",
+  finishedGameView: "finishedGameView",
+});
+
+export const Layers = Object.freeze({
+  tilesLayer: "tilesLayer",
+  roadsLayer: "roadsLayer",
+  settlementsLayer: "settlementsLayer",
+  none: "none",
+});
+
 export const MIN_NUMBER_OF_PLAYERS = 3;
 export const MAX_NUMBER_OF_PLAYERS = 4;
+
+export const MIN_DICE_ROLL = 1;
+export const MAX_DICE_ROLL = 6;
+
+export const ROBBER_TOKEN_NUMBER = 7;
 
 export const Players = {
   playerOne: "playerOne",
@@ -8,7 +34,7 @@ export const Players = {
   playerFour: "playerFour",
 };
 
-export const playerColors = [
+export const PlayerColors = [
   { id: 0, color: "white" },
   { id: 1, color: "blue" },
   { id: 2, color: "orange" },
@@ -20,7 +46,7 @@ export const NUMBER_OF_SETTLEMENTS_IN_ROW = [
   3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3,
 ];
 
-export const terrainTypes = [
+export const TerrainTypes = [
   {
     id: 0,
     name: "hills",
@@ -65,7 +91,7 @@ export const terrainTypes = [
   },
 ];
 
-export const tokenNumbers = [
+export const TokenNumbers = [
   { value: 2, amount: 1 },
   { value: 3, amount: 2 },
   { value: 4, amount: 2 },
@@ -87,7 +113,7 @@ export const MAX_AMOUNT_SETTLEMENTS = 5;
 export const MAX_AMOUNT_CITIES = 4;
 export const MAX_AMOUNT_ROADS = 15;
 
-export const resourcesForBuild = {
+export const ResourcesForBuild = {
   road: {
     brick: 1,
     lumber: 1,

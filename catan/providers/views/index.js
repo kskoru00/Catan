@@ -1,5 +1,5 @@
-import ViewsProvider, { ViewContext } from "./views";
+import ViewsProvider, { ViewsContext } from "./views";
 
 export default ViewsProvider;
 
-export { ViewContext };
+export { ViewsContext };

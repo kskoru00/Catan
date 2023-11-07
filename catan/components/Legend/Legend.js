@@ -1,4 +1,4 @@
-import { terrainTypes } from "consts";
+import { TerrainTypes } from "consts";
 
 import classes from "./Legend.module.css";
 
@@ -7,7 +7,7 @@ const Legend = () => {
     <div className={classes.container}>
       <h3 className={classes.title}>Game legend:</h3>
       <div className={classes.wrapper}>
-        {terrainTypes.map((type, i) => (
+        {TerrainTypes.map((type, i) => (
           <div key={i} className={classes.elementContainer}>
             <div className={classes.symbolContainer}>
               <div

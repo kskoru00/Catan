@@ -3,45 +3,51 @@ import { useEffect, useState } from "react";
 import { usePlayersContext, useViewsContext } from "providers/hooks";
 
 import {
+  Views,
+  Layers,
   MAX_AMOUNT_CITIES,
   MAX_AMOUNT_SETTLEMENTS,
-  resourcesForBuild,
+  ResourcesForBuild,
 } from "consts";
 
 import classes from "./Settlement.module.css";
 
 const Settlement = ({ id, neighbours }) => {
   const {
-    filteredPlayers,
+    filteredPlayers: players,
     addPlayerSettlement,
     updateSettlementToCity,
     removeResourceCard,
   } = usePlayersContext();
-  const { view, changeActiveLayer, setError } = useViewsContext();
+  const { view, setActiveLayer, setError } = useViewsContext();
 
-  const [type, setType] = useState("settlement");
+  const [type, setType] = useState(
+    players.find((player) => player.cities.some((city) => city === id))
+      ? "city"
+      : "settlement"
+  );
 
-  useEffect(() => {
-    if (view.activeView === "startGameView") {
-      setType("settlement");
-    }
-  }, [view.activeView]);
-
-  const color = filteredPlayers.find(
+  const color = players.find(
     (player) =>
       player.settlements.some((settlement) => settlement === id) ||
       player.cities.some((city) => city === id)
   )?.color;
 
-  const activePlayer = filteredPlayers.find((player) => player.isActive);
+  const activePlayer = players.find((player) => player.isActive);
+
+  useEffect(() => {
+    if (view.activeView === Views.startGameView) {
+      setType("settlement");
+    }
+  }, [view.activeView]);
 
   const handleClick = () => {
     const isThereSettledNeighbour = neighbours.some((el) =>
-      filteredPlayers.some((player) =>
+      players.some((player) =>
         player.settlements.some((settlement) => settlement === el)
       )
     );
-    const isSettlementSettled = filteredPlayers
+    const isSettlementSettled = players
       .filter((player) => player.name !== activePlayer.name)
       .some(
         (player) =>
@@ -51,71 +57,98 @@ const Settlement = ({ id, neighbours }) => {
 
     if (isSettlementSettled || isThereSettledNeighbour) {
       setError(`You can't select this ${type}`);
+
       return;
     }
 
     if (activePlayer.cities.some((city) => city === id)) {
       setError("This is already your city. Please select something else.");
+
       return;
     }
 
-    if (view.activeView === "setupGameView") {
-      if (activePlayer.settlements.some((settlement) => settlement === id)) {
-        setError("This settlement already belongs to you.");
-        return;
-      }
-      setError("");
-      addPlayerSettlement(id);
-      changeActiveLayer("roadsLayer");
-    } else if (view.activeView === "buildView") {
-      const typeForBuild = activePlayer.settlements.some(
-        (settlement) => settlement === id
-      )
-        ? "city"
-        : "settlement";
+    if (view.activeView === Views.setupGameView) {
+      handleAddSettlementOnSetup();
+    } else if (view.activeView === ViewsbuildElementView) {
+      handleAddSettlmentOrCityOnBuild();
+    }
+  };
 
-      if (
-        (typeForBuild === "city" &&
-          activePlayer.cities.length >= MAX_AMOUNT_CITIES) ||
-        (typeForBuild === "settlement" &&
-          activePlayer.settlements.length >= MAX_AMOUNT_SETTLEMENTS)
-      ) {
-        setError(`You don't have ${typeForBuild} elements available.`);
+  const handleAddSettlementOnSetup = () => {
+    if (activePlayer.settlements.some((settlement) => settlement === id)) {
+      setError("This settlement already belongs to you.");
 
-        return;
-      }
+      return;
+    }
 
-      const hasPlayerEnoughResources = Object.entries(
-        resourcesForBuild[typeForBuild]
-      ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
+    setError("");
+    addPlayerSettlement(id);
+    setActiveLayer(Layers.roadsLayer);
+  };
 
-      if (!hasPlayerEnoughResources) {
-        setError(
-          `You don't have enough resources for building ${type}. Please go back to trade or finish your turn.`
-        );
-        return;
-      }
+  const handleAddSettlmentOrCityOnBuild = () => {
+    const hasPlayerRoadOnSettlement = activePlayer.roads.some(
+      (road) =>
+        Number(road.split("-")[0]) === id || Number(road.split("-")[1]) === id
+    );
 
-      Object.entries(resourcesForBuild[typeForBuild]).forEach(([key, value]) =>
-        removeResourceCard(key, activePlayer.name, value)
+    if (!hasPlayerRoadOnSettlement) {
+      setError(
+        `You can't build this settlement. Your new settlement must connect to at least 1 of your own roads.`
       );
-      setError("");
-
-      if (typeForBuild === "city") {
-        updateSettlementToCity(id);
-        setType("city");
-      } else {
-        addPlayerSettlement(id);
-      }
 
       return;
     }
+
+    const typeForBuild = activePlayer.settlements.some(
+      (settlement) => settlement === id
+    )
+      ? "city"
+      : "settlement";
+
+    if (
+      (typeForBuild === "city" &&
+        activePlayer.cities.length >= MAX_AMOUNT_CITIES) ||
+      (typeForBuild === "settlement" &&
+        activePlayer.settlements.length >= MAX_AMOUNT_SETTLEMENTS)
+    ) {
+      setError(`You don't have ${typeForBuild} elements available.`);
+
+      return;
+    }
+
+    const hasPlayerEnoughResources = Object.entries(
+      ResourcesForBuild[typeForBuild]
+    ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
+
+    if (!hasPlayerEnoughResources) {
+      setError(
+        `You don't have enough resources for building ${type}. Please go back to trade or finish your turn.`
+      );
+
+      return;
+    }
+
+    Object.entries(ResourcesForBuild[typeForBuild]).forEach(([key, value]) =>
+      removeResourceCard(key, activePlayer.name, value)
+    );
+
+    setError("");
+
+    if (typeForBuild === "city") {
+      updateSettlementToCity(id);
+      setType("city");
+    } else {
+      addPlayerSettlement(id);
+    }
+
+    return;
   };
 
   return (
     <div className={classes.container}>
       <button
-        disabled={view.activeLayer !== "settlementsLayer"}
+        disabled={view.activeLayer !== Layers.settlementsLayer}
         onClick={handleClick}
         className={`${classes[type]} ${classes[color]}`}
       ></button>

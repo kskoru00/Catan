@@ -1,22 +1,34 @@
+.container {
+  height: calc(var(--polygon-height) / 2 / 2);
+}
+.verticalContainer {
+  height: calc(var(--polygon-height) / 2);
+  width: var(--road);
+}
+.verticalContainer:not(:last-child) {
+  margin-right: calc(
+    calc(var(--polygon-width) * 5 + var(--settlementContainer)) / 5 -
+      calc(var(--road) * 2) - 1px
+  );
+}
 .button {
+  padding: 0;
   cursor: pointer;
-  width: 50px;
   background-color: var(--black);
   border: none;
-  height: 3px;
+  height: var(--road);
 }
 .left {
   transform: rotateY(0deg) rotate(-30deg);
+  width: calc(var(--polygon-width) / 2);
 }
 .right {
   transform: rotateY(0deg) rotate(30deg);
+  width: calc(var(--polygon-width) / 2);
 }
 .vertical {
-  transform: rotateY(0deg) rotate(90deg);
-  width: 56px;
-}
-.verticalContainer:not(:last-child) {
-  margin-right: 43.5px;
+  height: calc(var(--polygon-height) / 2);
+  width: var(--road);
 }
 .red {
   background-color: var(--red);

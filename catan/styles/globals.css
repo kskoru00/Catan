@@ -12,6 +12,11 @@
   --light-green: #93c572;
   --gray: #a9a9a9;
   --black: #343434;
+  --polygon-width: 100px;
+  --polygon-height: 116px;
+  --settlementContainer: 20px;
+  --settlement: 10px;
+  --road: 3px;
 }
 * {
   box-sizing: border-box;

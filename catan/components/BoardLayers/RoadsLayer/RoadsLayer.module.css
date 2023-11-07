@@ -1,13 +1,11 @@
 .container {
   width: 520px;
-  height: 457px;
+  height: 479px;
 }
 .row {
   display: flex;
   justify-content: center;
 }
-.row:not(:last-child) {
-  margin-bottom: 24.5px;
-
-  /*24*/
+.row:first-child {
+  margin-top: calc(var(--settlementContainer) / 2);
 }

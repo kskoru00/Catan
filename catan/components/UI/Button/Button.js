@@ -1,6 +1,6 @@
 import classes from "./Button.module.css";
 
-const Button = ({ value, onClick, isDisabled }) => {
+const Button = ({ children, onClick, isDisabled }) => {
   return (
     <div>
       <button
@@ -8,7 +8,7 @@ const Button = ({ value, onClick, isDisabled }) => {
         onClick={onClick}
         className={classes.button}
       >
-        {value}
+        {children}
       </button>
     </div>
   );

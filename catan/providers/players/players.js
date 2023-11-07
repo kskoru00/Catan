@@ -1,10 +1,10 @@
 import { createContext, useReducer } from "react";
 
-import { Players, terrainTypes } from "consts";
+import { Players, TerrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
 
-const terrainResources = terrainTypes.map((terrain) => terrain.produce);
+const terrainResources = TerrainTypes.map((terrain) => terrain.produce);
 const resourceCards = {};
 
 terrainResources.forEach((resource) => {
@@ -17,7 +17,6 @@ const initialState = {
   [Players.playerOne]: {
     name: "",
     color: null,
-    score: 0,
     isActive: false,
     settlements: [],
     cities: [],
@@ -28,7 +27,6 @@ const initialState = {
   [Players.playerTwo]: {
     name: "",
     color: null,
-    score: 0,
     isActive: false,
     settlements: [],
     cities: [],
@@ -39,7 +37,6 @@ const initialState = {
   [Players.playerThree]: {
     name: "",
     color: null,
-    score: 0,
     isActive: false,
     settlements: [],
     cities: [],
@@ -50,7 +47,6 @@ const initialState = {
   [Players.playerFour]: {
     name: "",
     color: null,
-    score: 0,
     isActive: false,
     settlements: [],
     cities: [],
@@ -136,7 +132,6 @@ const reducer = (state = initialState, action) => {
           ],
         },
       };
-
     case REMOVE_PLAYER_SETTLEMENT: {
       return {
         ...state,
@@ -179,7 +174,7 @@ const reducer = (state = initialState, action) => {
             [action.payload.resourceType]:
               state[action.payload.player].resourceCards[
                 action.payload.resourceType
-              ] + 1,
+              ] + action.payload.amount,
           },
         },
       };
@@ -272,6 +267,7 @@ const PlayersProvider = ({ children }) => {
         },
       });
     });
+
     const randomPlayerPosition = generateRandomNumber(0, playersArr.length - 1);
     const activePlayer = playersArr[randomPlayerPosition];
 
@@ -291,6 +287,7 @@ const PlayersProvider = ({ children }) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
+
     dispatch({
       type: ADD_PLAYER_SETTLEMENT,
       payload: {
@@ -304,10 +301,12 @@ const PlayersProvider = ({ children }) => {
     removePlayerSettlement(settlementId);
     addPlayerCity(settlementId);
   };
+
   const removePlayerSettlement = (settlementId) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
+
     dispatch({
       type: REMOVE_PLAYER_SETTLEMENT,
       payload: {
@@ -321,6 +320,7 @@ const PlayersProvider = ({ children }) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
+
     dispatch({
       type: ADD_PLAYER_CITY,
       payload: {
@@ -357,6 +357,7 @@ const PlayersProvider = ({ children }) => {
         player: activePlayer,
       },
     });
+
     dispatch({
       type: SET_PLAYER_AS_ACTIVE,
       payload: {
@@ -369,6 +370,7 @@ const PlayersProvider = ({ children }) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
+
     dispatch({
       type: UPDATE_PLAYERS_ROADS,
       payload: {
@@ -378,7 +380,7 @@ const PlayersProvider = ({ children }) => {
     });
   };
 
-  const addResourceCard = (resourceType, playerName) => {
+  const addResourceCard = (resourceType, playerName, amount = 1) => {
     const player = Object.keys(players).find(
       (key) => players[key].name === playerName
     );
@@ -388,13 +390,16 @@ const PlayersProvider = ({ children }) => {
       payload: {
         player,
         resourceType,
+        amount,
       },
     });
   };
+
   const removeResourceCard = (resourceType, playerName, amount = 1) => {
     const player = Object.keys(players).find(
       (key) => players[key].name === playerName
     );
+
     dispatch({
       type: REMOVE_RESOURCE_CARD,
       payload: {
@@ -422,12 +427,14 @@ const PlayersProvider = ({ children }) => {
     const activePlayer = Object.keys(players).find(
       (key) => players[key].isActive
     );
+
     dispatch({
       type: SET_DEVELOPMENT_CARD_AS_ACTIVE,
       payload: {
         player: activePlayer,
       },
     });
+
     changeActivePlayer();
   };
 
@@ -456,6 +463,7 @@ const PlayersProvider = ({ children }) => {
       const key = Object.keys(players).find(
         (key) => players[key].name === player.name
       );
+
       dispatch({
         type: RESET_PLAYER,
         payload: {

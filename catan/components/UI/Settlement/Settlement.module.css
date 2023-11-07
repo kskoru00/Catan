@@ -1,15 +1,19 @@
 .container {
-  width: 20px;
-  height: 20px;
+  width: var(--settlementContainer);
+  height: var(--settlementContainer);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .settlement {
-  width: 10px;
-  height: 10px;
+  width: var(--settlement);
+  height: var(--settlement);
   border: none;
   background-color: var(--black);
+  cursor: pointer;
+}
+.settlement:disabled {
+  cursor: default;
 }
 .city {
   width: 18px;
@@ -18,7 +22,7 @@
   background-color: var(--black);
 }
 .container:not(:last-child) {
-  margin-right: 80px;
+  margin-right: calc(var(--polygon-width) - var(--settlementContainer));
 }
 .red {
   background-color: var(--red);

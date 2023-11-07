@@ -4,19 +4,25 @@ import {
   useTileContext,
 } from "providers/hooks";
 
-import { MAX_AMOUNT_ROADS, resourcesForBuild, terrainTypes } from "consts";
+import {
+  Views,
+  Layers,
+  MAX_AMOUNT_ROADS,
+  TerrainTypes,
+  ResourcesForBuild,
+} from "consts";
 
 import classes from "./Road.module.css";
 
 const Road = ({ id, row, positionInRow }) => {
   const {
-    filteredPlayers,
+    filteredPlayers: players,
     updatePlayersRoads,
     changeActivePlayer,
     addResourceCard,
     removeResourceCard,
   } = usePlayersContext();
-  const { view, changeView, changeActiveLayer, setUpdateMessage, setError } =
+  const { view, setActiveView, setActiveLayer, setUpdateMessage, setError } =
     useViewsContext();
   const { tiles } = useTileContext();
 
@@ -24,9 +30,9 @@ const Road = ({ id, row, positionInRow }) => {
     .split("-")
     .map((settlement) => Number(settlement));
 
-  const activePlayer = filteredPlayers.find((player) => player.isActive);
+  const activePlayer = players.find((player) => player.isActive);
 
-  const color = filteredPlayers.find((player) =>
+  const color = players.find((player) =>
     player.roads.find((road) => road === id)
   )?.color;
 
@@ -53,15 +59,13 @@ const Road = ({ id, row, positionInRow }) => {
   let buttonClassName = `${classes.button} ${classes[color]} ${classes[position]}`;
 
   const handleClick = () => {
-    if (
-      filteredPlayers.some((player) => player.roads.some((road) => road === id))
-    ) {
+    if (players.some((player) => player.roads.some((road) => road === id))) {
       setError("This road is already selected.");
       return;
     }
-    if (view.activeView === "setupGameView") {
+    if (view.activeView === Views.setupGameView) {
       handleAddRoadOnSetup();
-    } else if (view.activeView === "buildView") {
+    } else if (view.activeView === Views.buildElementView) {
       handleAddRoadOnBuild();
     }
   };
@@ -69,16 +73,19 @@ const Road = ({ id, row, positionInRow }) => {
   const handleAddRoadOnBuild = () => {
     if (activePlayer.roads.length >= MAX_AMOUNT_ROADS) {
       setError("You have no more roads available.");
+
       return;
     }
+
     const hasPlayerEnoughResources = Object.entries(
-      resourcesForBuild.road
+      ResourcesForBuild.road
     ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
 
     if (!hasPlayerEnoughResources) {
       setError(
         "You don't have enough resources for building road. Please go back to trade or finish your turn."
       );
+
       return;
     }
     const isRoadConnectedToPlayersSettlement = activePlayer.settlements.some(
@@ -91,31 +98,34 @@ const Road = ({ id, row, positionInRow }) => {
     );
     if (!isRoadConnectToPlayersRoad && !isRoadConnectedToPlayersSettlement) {
       setError("You can't choose this road");
+
       return;
     }
+
     setError("");
     updatePlayersRoads(id);
-    Object.entries(resourcesForBuild.road).forEach(([key, value]) =>
+
+    Object.entries(ResourcesForBuild.road).forEach(([key, value]) =>
       removeResourceCard(key, activePlayer.name, value)
     );
   };
 
   const setPlayersSetupResources = () => {
-    const playersSetupResources = filteredPlayers.map((player) => ({
+    const playersSetupResources = players.map((player) => ({
       name: player.name,
       resources: [],
     }));
 
-    filteredPlayers.forEach((player) => {
+    players.forEach((player) => {
       player.settlements.forEach((settlement) => {
         const resourceCards = tiles
           .flat()
           .filter((type) => type.settlements.find((el) => el === settlement))
-          .map((tile) => terrainTypes[tile.terrainId].name)
+          .map((tile) => TerrainTypes[tile.terrainId].name)
           .filter((card) => card !== "dessert")
           .map(
             (tileType) =>
-              terrainTypes.find((type) => type.name === tileType).produce
+              TerrainTypes.find((type) => type.name === tileType).produce
           );
 
         resourceCards.forEach((card) => {
@@ -126,6 +136,7 @@ const Road = ({ id, row, positionInRow }) => {
         });
       });
     });
+
     const message =
       `Added resources:` +
       "\n\n" +
@@ -141,21 +152,19 @@ const Road = ({ id, row, positionInRow }) => {
 
   const setForNextSetupStep = () => {
     setError("");
-    changeActiveLayer("settlementsLayer");
+    setActiveLayer(Layers.settlementsLayer);
 
-    if (filteredPlayers.every((player) => player.settlements.length === 2)) {
+    if (players.every((player) => player.settlements.length === 2)) {
       setPlayersSetupResources();
-      changeView("resourceProductionView");
-      changeActiveLayer("none");
+      setActiveView(Views.resourceProductionView);
+      setActiveLayer("none");
       return;
-    } else if (
-      filteredPlayers.every((player) => player.settlements.length === 1)
-    ) {
+    } else if (players.every((player) => player.settlements.length === 1)) {
       return;
     } else if (activePlayer.settlements.length === 2) {
       changeActivePlayer(-1);
     } else if (
-      !filteredPlayers.find(
+      !players.find(
         (player) => player.settlements.length === 2 && player.roads.length === 2
       ) &&
       activePlayer.settlements.length < 2 &&
@@ -194,14 +203,19 @@ const Road = ({ id, row, positionInRow }) => {
         return;
       }
     }
+
     updatePlayersRoads(id);
     setForNextSetupStep();
   };
 
   return (
-    <div className={position === "vertical" ? classes.verticalContainer : ""}>
+    <div
+      className={
+        position === "vertical" ? classes.verticalContainer : classes.container
+      }
+    >
       <button
-        disabled={view.activeLayer !== "roadsLayer"}
+        disabled={view.activeLayer !== Views.roadsLayer}
         onClick={handleClick}
         className={buttonClassName}
       ></button>

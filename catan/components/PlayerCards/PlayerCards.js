@@ -1,103 +1,120 @@
-import ResourceCard from "components/ResourceCard";
-import classes from "./PlayerCards.module.css";
-import DevelopmentCards from "components/DevelopmentCards";
-
-import { usePlayersContext, useViewsContext } from "providers/hooks";
-import { NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK } from "consts";
 import { useState } from "react";
 
-const PlayerCards = ({ player }) => {
-  const { filteredPlayers } = usePlayersContext();
+import { usePlayersContext, useViewsContext } from "providers/hooks";
+
+import {
+  NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK,
+  NUMBER_OF_RESOURCES_RECEIVING_FROM_BANK,
+  Views,
+} from "consts";
+
+import ResourceCard from "components/ResourceCard";
+import DevelopmentCards from "components/DevelopmentCards";
+
+import classes from "./PlayerCards.module.css";
+
+const PlayerCards = ({ playerName }) => {
+  const { filteredPlayers: players } = usePlayersContext();
   const { addResourceCard, removeResourceCard } = usePlayersContext();
-  const { view, changeView, setUpdateMessage, setError } = useViewsContext();
+  const { view, setActiveView, setUpdateMessage, setError } = useViewsContext();
 
   const [disabledResource, setDisabledResource] = useState(null);
   const [showKnightsDetails, setShowKnightsDetails] = useState(false);
 
-  const activePlayer = player
-    ? filteredPlayers.find((el) => el.name === player.name)
-    : null;
+  const player = players.find((el) =>
+    playerName ? el.name === playerName : el.isActive
+  );
 
-  const countKnightCards = activePlayer.developmentCards.filter(
+  const countKnightCards = player.developmentCards.filter(
     (card) => card.type === "knights"
   ).length;
 
   const handleResourceClick = (type) => {
-    if (view.activeView === "robberView") {
-      if (activePlayer.resourceCards[type] > 0) {
-        console.log("je");
-
-        removeResourceCard(type, activePlayer.name);
-        setUpdateMessage(`Removed 1 ${type} for ${activePlayer.name}`);
+    if (view.activeView === Views.robberView) {
+      if (player.resourceCards[type] > 0) {
+        removeResourceCard(type, player.name);
+        setUpdateMessage(`Removed 1 ${type} for ${player.name}`);
       }
-    } else if (view.activeView === "tradeView") {
-      if (activePlayer.resourceCards[type] < 4) {
+    } else if (view.activeView === Views.tradeView) {
+      if (player.resourceCards[type] < NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK) {
         setError(
-          `You cant trade with ${type}. For trading min amount of resource is 4.`
+          `You can't trade with ${type}. Minimum trade amount of resource is ${NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK}.`
         );
+
         return;
       }
-      setError("");
+
       removeResourceCard(
         type,
-        activePlayer.name,
+        player.name,
         NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK
       );
+
+      setError("");
       setDisabledResource(type);
 
-      setUpdateMessage(`Removed 4 ${type} for ${activePlayer.name}`);
-      changeView("tradeViewPhase2");
-    } else if (view.activeView === "tradeViewPhase2") {
-      addResourceCard(type, activePlayer.name);
-      setUpdateMessage(`Added 1 ${type} for ${activePlayer.name}`);
-      changeView("tradeView");
+      setUpdateMessage(
+        `Removed ${NUMBER_OF_RESOURCES_TO_GIVE_TO_BANK} ${type} for ${player.name}`
+      );
+      setActiveView(Views.tradeViewPhase2);
+    } else if (view.activeView === Views.tradeViewPhase2) {
+      addResourceCard(type, player.name);
+
+      setUpdateMessage(
+        `Added ${NUMBER_OF_RESOURCES_RECEIVING_FROM_BANK} ${type} for ${player.name}`
+      );
+      setActiveView(Views.tradeView);
       setDisabledResource(null);
     }
   };
 
   return (
-    <div className={`${classes.wrapper} ${classes[activePlayer.color]}`}>
-      <h3 className={classes.title}>Player : {activePlayer?.name}</h3>
-      <div className={classes.resourceCard}>
+    <div className={`${classes.container} ${classes[player.color]}`}>
+      <h3 className={classes.title}>Player : {player.name}</h3>
+      <div className={classes.cards}>
         <h4 className={classes.subtitle}>Resource cards:</h4>
-        {activePlayer &&
-          Object.entries(activePlayer?.resourceCards).map(([key, value]) => (
-            <ResourceCard
-              onClick={handleResourceClick}
-              key={key}
-              id={key}
-              type={key}
-              amount={value}
-              isDisabled={disabledResource === key}
-            />
-          ))}
+        {Object.entries(player.resourceCards).map(([key, value]) => (
+          <ResourceCard
+            onClick={handleResourceClick}
+            key={key}
+            id={key}
+            type={key}
+            amount={value}
+            isDisabled={
+              disabledResource === key ||
+              (view.activeView !== Views.tradeViewPhase2 && value === 0)
+            }
+          />
+        ))}
       </div>
-      <div className={classes.resourceCard}>
+      <div className={classes.cards}>
         <h4 className={classes.subtitle}>Development cards:</h4>
-        <span className={classes.developmentItem}>
-          victory points:{" "}
-          {activePlayer &&
-            activePlayer?.developmentCards.filter(
-              (card) => card.type === "victoryPoint"
-            ).length}
-        </span>
-        <div className={classes.container}>
+        <div className={classes.developmentContainer}>
+          <span className={classes.developmentItem}>
+            victory points:{" "}
+            {player &&
+              player?.developmentCards.filter(
+                (card) => card.type === "victoryPoint"
+              ).length}
+          </span>
+        </div>
+        <div className={classes.developmentContainer}>
           <span className={classes.developmentItem}>
             knights: {countKnightCards}
           </span>
           <button
             disabled={countKnightCards === 0}
-            className={`${classes.button} ${classes[activePlayer.color]}`}
+            className={`${classes.button} ${classes[player.color]}`}
             onClick={() => {
               setShowKnightsDetails(!showKnightsDetails);
             }}
           >
-            {!showKnightsDetails ? " Show details" : "Hide details"}
+            {!showKnightsDetails ? "Show details" : "Hide details"}
           </button>
         </div>
         {showKnightsDetails && (
-          <div className={classes.developmentCardsContainer}>
-            {activePlayer?.developmentCards
+          <div className={classes.knightsContainer}>
+            {player.developmentCards
               .filter((card) => card.type === "knights")
               .map((value, i) => (
                 <DevelopmentCards

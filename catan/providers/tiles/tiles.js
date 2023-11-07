@@ -1,5 +1,6 @@
-import { setInitialTiles } from "helpers/initializeBoardElements";
 import { createContext, useState } from "react";
+
+import { setInitialTiles } from "helpers/initializeBoardElements";
 
 import { generateRandomTerrainType, generateRandomTokenNumber } from "helpers";
 
@@ -49,6 +50,7 @@ const TilesProvider = ({ children }) => {
       return newTiles;
     });
   };
+
   const initializeTilesForNewRound = () => {
     tiles.forEach((row, i) => {
       row.forEach((_, j) => {

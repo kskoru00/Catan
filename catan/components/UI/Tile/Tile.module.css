@@ -2,12 +2,13 @@
   position: relative;
 }
 .polygon {
-  width: 100px;
-  height: calc(100px * 1.1547);
   display: inline-block;
+  width: var(--polygon-width);
+  height: var(--polygon-height);
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
   background-color: var(--dark-brown);
   border: none;
+  padding: 0;
 }
 .orange {
   background-color: var(--dark-orange);

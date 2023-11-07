@@ -1,7 +1,7 @@
-import { terrainTypes, playerColors, tokenNumbers } from "consts";
+import { TerrainTypes, PlayerColors, TokenNumbers } from "consts";
 
 export const generateRandomTerrainType = (boardTiles) => {
-  const availableTerrainTypes = terrainTypes.filter(
+  const availableTerrainTypes = TerrainTypes.filter(
     (type) =>
       boardTiles.filter((tile) => tile.terrainId === type.id).length <
       type.amount
@@ -16,7 +16,7 @@ export const generateRandomTerrainType = (boardTiles) => {
 };
 
 export const generateRandomTokenNumber = (boardTiles, terrainType) => {
-  const dessertId = Object.values(terrainTypes).find(
+  const dessertId = Object.values(TerrainTypes).find(
     (type) => type.name === "dessert"
   ).id;
 
@@ -24,7 +24,7 @@ export const generateRandomTokenNumber = (boardTiles, terrainType) => {
     return 7;
   }
 
-  const availableTokenNumbers = tokenNumbers.filter(
+  const availableTokenNumbers = TokenNumbers.filter(
     (number) =>
       boardTiles.filter((tile) => tile.tokenNumber === number.value).length <
       number.amount
@@ -38,9 +38,9 @@ export const generateRandomTokenNumber = (boardTiles, terrainType) => {
 };
 
 export const generateRandomColor = (takenColors, playersNumber) => {
-  const colors = playerColors
-    .slice(0, playersNumber)
-    .map((color) => color.color);
+  const colors = PlayerColors.slice(0, playersNumber).map(
+    (color) => color.color
+  );
 
   const availableColors = colors.filter((col) =>
     takenColors.every((el) => el !== col)

@@ -10,9 +10,6 @@
   justify-content: space-between;
   height: 25px;
 }
-.playerContainer:not(:last-child) {
-  margin-bottom: 12px;
-}
 .playerWrapper {
   display: flex;
   align-items: center;
@@ -48,9 +45,12 @@
   width: 20px;
   margin-left: 8px;
 }
+.specialCard:not(:last-child) {
+  margin-right: 8px;
+}
 .button {
   width: 90px;
-  height: 22px;
+  height: 20px;
   border: none;
   border-radius: 3px;
   text-transform: uppercase;
@@ -59,6 +59,7 @@
 }
 .button:disabled {
   opacity: 0.6;
+  cursor: default;
 }
 .button:hover {
   transform: scale(1.1);

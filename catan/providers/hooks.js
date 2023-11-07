@@ -1,7 +1,7 @@
 import { useContext } from "react";
 
 import { PlayersContext } from "./players";
-import { ViewContext } from "./views";
+import { ViewsContext } from "./views";
 import { TilesContext } from "./tiles";
 
 export const usePlayersContext = () => {
@@ -9,7 +9,7 @@ export const usePlayersContext = () => {
 };
 
 export const useViewsContext = () => {
-  return useContext(ViewContext);
+  return useContext(ViewsContext);
 };
 
 export const useTileContext = () => {

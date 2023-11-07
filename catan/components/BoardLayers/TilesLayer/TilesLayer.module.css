@@ -1,10 +1,15 @@
 .container {
   width: 520px;
+  height: 479px;
 }
 .row {
   display: flex;
   justify-content: center;
+  height: 115px;
+}
+.row:first-child {
+  margin-top: 10px;
 }
 .row:not(:last-child) {
-  margin-bottom: -34px;
+  margin-bottom: -29px;
 }

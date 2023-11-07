@@ -6,7 +6,7 @@ const Layout = ({ children }) => {
       <header className={classes.header}>
         <h1>Catan</h1>
       </header>
-      <main className={classes.main}>{children}</main>
+      <main>{children}</main>
     </div>
   );
 };

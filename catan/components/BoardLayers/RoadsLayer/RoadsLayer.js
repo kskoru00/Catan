@@ -2,6 +2,8 @@ import { useViewsContext } from "providers/hooks";
 
 import { setInitialRoads } from "helpers/initializeBoardElements";
 
+import { Layers } from "consts";
+
 import Road from "components/UI/Road";
 
 import classes from "./RoadsLayer.module.css";
@@ -13,7 +15,7 @@ const RoadsLayer = () => {
 
   return (
     <div className={classes.container}>
-      {view.activeLayer !== "tilesLayer" &&
+      {view.activeLayer !== Layers.tilesLayer &&
         roads.map((row, i) => (
           <div key={i} className={classes.row}>
             {row.map((road, j) => (

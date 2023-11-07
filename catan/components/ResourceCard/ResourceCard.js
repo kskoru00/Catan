@@ -1,4 +1,5 @@
 import SelectButton from "components/UI/SelectButton";
+
 import classes from "./ResourceCard.module.css";
 
 const Resource = ({ type, amount, onClick, isDisabled }) => {

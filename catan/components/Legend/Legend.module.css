@@ -31,7 +31,7 @@
 }
 .polygon {
   width: 15px;
-  height: calc(15px * 1.1547);
+  height: 17px;
   display: inline-block;
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
   background-color: var(--dark-brown);

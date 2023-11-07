@@ -1,16 +1,16 @@
 import { useTileContext, useViewsContext } from "providers/hooks";
 
-import { terrainTypes } from "consts";
+import { Views, Layers, TerrainTypes } from "consts";
 
 import classes from "./Tile.module.css";
 
 const Tile = ({ id, onClick }) => {
   const { tiles, toggleTileIsActive } = useTileContext();
-  const { view, changeView, changeActiveLayer } = useViewsContext();
+  const { view, setActiveView, setActiveLayer } = useViewsContext();
 
   const tile = tiles.flat().find((tile) => tile.id === id);
 
-  const terrainColor = terrainTypes.find(
+  const terrainColor = TerrainTypes.find(
     (type) => type.id === tile.terrainId
   )?.color;
 
@@ -20,12 +20,13 @@ const Tile = ({ id, onClick }) => {
     if (unactiveTile) {
       toggleTileIsActive(unactiveTile.id);
     }
+
     if (tile.tokenNumber !== 7) {
       toggleTileIsActive(id);
     }
 
-    changeActiveLayer("none");
-    changeView("robberViewPhase3");
+    setActiveLayer(Layers.none);
+    setActiveView(Views.robberViewPhase3);
     onClick(id);
   };
 
@@ -40,7 +41,7 @@ const Tile = ({ id, onClick }) => {
           <span>{!unactiveTile ? "robber" : ""}</span>
         ) : (
           <span className={classes.number}>
-            {view.activeView === "startGameView"
+            {view.activeView === Views.startGameView
               ? ""
               : tile.isActive
               ? `${tile.tokenNumber}`

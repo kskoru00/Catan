@@ -1,24 +1,6 @@
 import { createContext, useState } from "react";
 
-const Views = Object.freeze({
-  startGameView: "startGameView",
-  setupGameView: "setupGameView",
-  resourceProductionView: "resourceProductionView",
-  robberView: "robberView",
-  robberViewPhase2: "robberViewPhase2",
-  robberViewPhase3: "robberViewPhase3",
-  tradeView: "tradeView",
-  tradeViewPhase2: "tradeViewPhase2",
-  buildView: "buildView",
-  finishedGameView: "finishedGameView",
-});
-
-const Layers = Object.freeze({
-  tilesLayer: "tilesLayer",
-  roadsLayer: "roadsLayer",
-  settlementsLayer: "settlementsLayer",
-  none: "none",
-});
+import { Views, Layers } from "consts";
 
 const initialState = {
   activeView: Views.startGameView,
@@ -27,10 +9,10 @@ const initialState = {
   updateMessage: "",
 };
 
-export const ViewContext = createContext({
+export const ViewsContext = createContext({
   view: { ...initialState },
-  changeView: () => {},
-  changeActiveLayer: () => {},
+  setActiveView: () => {},
+  setActiveLayer: () => {},
   setError: () => {},
   setUpdateMessage: () => {},
 });
@@ -38,11 +20,11 @@ export const ViewContext = createContext({
 const ViewsProvider = ({ children }) => {
   const [view, setView] = useState(initialState);
 
-  const changeView = (view) => {
+  const setActiveView = (view) => {
     setView((prevView) => ({ ...prevView, activeView: Views[view] }));
   };
 
-  const changeActiveLayer = (layer) => {
+  const setActiveLayer = (layer) => {
     setView((prevLayer) => ({ ...prevLayer, activeLayer: Layers[layer] }));
   };
 
@@ -56,13 +38,15 @@ const ViewsProvider = ({ children }) => {
 
   const value = {
     view,
-    changeView,
-    changeActiveLayer,
+    setActiveView,
+    setActiveLayer,
     setError,
     setUpdateMessage,
   };
 
-  return <ViewContext.Provider value={value}>{children}</ViewContext.Provider>;
+  return (
+    <ViewsContext.Provider value={value}>{children}</ViewsContext.Provider>
+  );
 };
 
 export default ViewsProvider;

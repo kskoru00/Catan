@@ -114,7 +114,7 @@ const CreateGame = () => {
           onChange={handleNameChange(Players.playerFour)}
         />
       </div>
-      <Button value="Create new game" />
+      <Button>Create new game</Button>
     </form>
   );
 };

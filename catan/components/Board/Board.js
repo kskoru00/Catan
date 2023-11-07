@@ -10,8 +10,14 @@ import {
 import { generateRandomNumber } from "helpers";
 
 import {
-  terrainTypes,
-  resourcesForBuild,
+  Views,
+  Layers,
+  TerrainTypes,
+  ResourcesForBuild,
+  MIN_DICE_ROLL,
+  MAX_DICE_ROLL,
+  ROBBER_TOKEN_NUMBER,
+  TOTAL_NUMBER_OF_EACH_RESOURCE,
   MIN_LARGEST_ARMY,
   MIN_LONGEST_ROAD,
   MAX_AMOUNT_KNIGHT_CARDS,
@@ -25,18 +31,18 @@ import Legend from "components/Legend";
 import PlayersBoard from "components/PlayersBoard";
 import PlayerCards from "components/PlayerCards";
 import Button from "components/UI/Button";
+import SelectButton from "components/UI/SelectButton";
 import Error from "components/UI/Error";
 
 import classes from "./Board.module.css";
-import SelectButton from "components/UI/SelectButton";
 
 const Board = () => {
   const router = useRouter();
 
-  const { view, changeView, changeActiveLayer, setUpdateMessage, setError } =
+  const { view, setActiveView, setActiveLayer, setUpdateMessage, setError } =
     useViewsContext();
   const {
-    filteredPlayers,
+    filteredPlayers: players,
     addResourceCard,
     removeResourceCard,
     addDevelopmentCard,
@@ -47,7 +53,7 @@ const Board = () => {
   const { tiles, setInitialTiles, initializeTilesForNewRound } =
     useTileContext();
 
-  const activePlayer = filteredPlayers.find((player) => player.isActive);
+  const activePlayer = players.find((player) => player.isActive);
 
   const [diceRoll, setDiceRoll] = useState(new Array(2).fill(null));
   const isDiceRolled = diceRoll.every((dice) => dice !== null);
@@ -60,6 +66,7 @@ const Board = () => {
   ] = useState([0, 0, 0]);
 
   const [viewBeforeKnight, setViewBeforeKnight] = useState(null);
+  const [isKnightUsed, setIsKnightUsed] = useState(false);
 
   const [panelMessage, setPanelMessage] = useState("");
 
@@ -68,7 +75,7 @@ const Board = () => {
   const [longestRoadLength, setLongestRoadLength] = useState(MIN_LONGEST_ROAD);
 
   useEffect(() => {
-    if (filteredPlayers.length === 0) {
+    if (players.length === 0) {
       router.push("/");
       return;
     }
@@ -88,57 +95,65 @@ const Board = () => {
     if (playerToSelectResources === null) {
       return;
     }
+
     const count = Object.values(
-      filteredPlayers[playerToSelectResources].resourceCards
+      players[playerToSelectResources].resourceCards
     ).reduce((sum, el) => el + sum, 0);
 
     if (
       count === amountOfRemainingResourcesForPlayers[playerToSelectResources] &&
-      view.activeView === "robberView"
+      view.activeView === Views.robberView
     ) {
-      if (playerToSelectResources + 1 === filteredPlayers.length) {
-        changeView("robberViewPhase2");
-        changeActiveLayer("tilesLayer");
+      if (playerToSelectResources + 1 === players.length) {
+        setActiveView(Views.robberViewPhase2);
+        setActiveLayer(Layers.tilesLayer);
         setAmountOfRemainingResourcesForPlayers([0, 0, 0]);
         setPlayerToSelectResources(null);
+
         return;
       }
+
       setPlayerToSelectResources(playerToSelectResources + 1);
     }
-  }, [filteredPlayers, playerToSelectResources]);
+  }, [players, playerToSelectResources]);
 
   const handleTileClicked = (id) => {
-    const occupiedTile = tiles.flat().find((tile) => tile.id === id);
+    const tile = tiles.flat().find((tile) => tile.id === id);
 
-    const playersWhoseSettlementIsOccupied = filteredPlayers.filter(
-      (players) =>
-        !players.isActive &&
-        players.settlements.find((settlement) =>
-          occupiedTile.settlements.find((el) => el === settlement)
+    const playersWithSettlementOnTile = players.filter(
+      (el) =>
+        !el.isActive &&
+        el.settlements.find((settlement) =>
+          tile.settlements.find((el) => el === settlement)
         )
     );
 
-    if (playersWhoseSettlementIsOccupied.length === 0) {
-      setUpdateMessage("No players have settlement on selected tile");
-      changeView("tradeView");
-    } else if (playersWhoseSettlementIsOccupied.length === 1) {
-      setPanelMessage(
-        `Only ${playersWhoseSettlementIsOccupied[0].name} has property on choosen tile.`
+    if (playersWithSettlementOnTile.length === 0) {
+      setUpdateMessage(
+        "There are no players who have settlement on selected tile."
       );
-      removeRandomResource(playersWhoseSettlementIsOccupied[0]);
-    } else if (playersWhoseSettlementIsOccupied.length > 1) {
+      setActiveView(Views.tradeView);
+    } else if (playersWithSettlementOnTile.length === 1) {
+      setPanelMessage(
+        `Only ${playersWithSettlementOnTile[0].name} has property on choosen tile.`
+      );
+      removeRandomResource(playersWithSettlementOnTile[0]);
+    } else if (playersWithSettlementOnTile.length > 1) {
       setPanelMessage(
         <div>
-          <p>Select from which player you want to take resource card</p>
-          <div className={classes.buttonsContainer}>
-            {playersWhoseSettlementIsOccupied.map((el, i) => (
-              <Button
+          <p className={classes.panelParagraph}>
+            Select from which player you want to take resource card
+          </p>
+          <div className={classes.panelButtonsContainer}>
+            {playersWithSettlementOnTile.map((el, i) => (
+              <SelectButton
                 onClick={() => {
                   removeRandomResource(el);
                 }}
                 key={i}
-                value={el.name}
-              ></Button>
+              >
+                {el.name}
+              </SelectButton>
             ))}
           </div>
         </div>
@@ -147,38 +162,44 @@ const Board = () => {
   };
 
   const removeRandomResource = (player) => {
-    const cards = player.resourceCards;
-    const availableCards = Object.entries(cards).filter(
+    const availableCards = Object.entries(player.resourceCards).filter(
       ([_, value]) => value > 0
     );
+
     const random = generateRandomNumber(0, availableCards.length - 1);
-    removeResourceCard(availableCards[random][0], player.name);
+    const randomCardKey = availableCards[random][0];
+
+    removeResourceCard(randomCardKey, player.name);
     setUpdateMessage(
-      `Removed random resource ${availableCards[random][0]} for player ${player.name}`
+      `Removed random resource ${randomCardKey} for player ${player.name}`
     );
+
     if (viewBeforeKnight) {
-      changeView(viewBeforeKnight);
+      setActiveView(viewBeforeKnight);
       setViewBeforeKnight(null);
+
       return;
     }
-    changeView("tradeView");
+
+    setActiveView(Views.tradeView);
   };
 
   const handleKnight = () => {
     setDevelopmentCardAsUsed();
+    setIsKnightUsed(true);
     setViewBeforeKnight(view.activeView);
-    changeView("robberViewPhase2");
-    changeActiveLayer("tilesLayer");
+    setActiveView(Views.robberViewPhase2);
+    setActiveLayer(Layers.tilesLayer);
 
     const countUsedKnights =
-      filteredPlayers
+      players
         .find((player) => player.isActive)
         .developmentCards.filter(
           (card) => card.type === "knights" && card.isUsed
         ).length + 1;
 
     const maxUsedKnights = Math.max(
-      ...filteredPlayers.map(
+      ...players.map(
         (player) =>
           player.developmentCards.filter(
             (card) => card.type === "knights" && card.isUsed
@@ -190,31 +211,38 @@ const Board = () => {
       countUsedKnights >= MIN_LARGEST_ARMY &&
       countUsedKnights > maxUsedKnights
     ) {
-      setlargestArmyOwner(activePlayer);
+      setlargestArmyOwner(activePlayer.name);
     }
   };
 
   const handleActiveRobber = () => {
-    changeView("robberView");
-    setDiceRoll(diceRoll.map(() => null));
+    if (view.activeView === Views.resourceProductionView) {
+      setDiceRoll(diceRoll.map(() => null));
+    }
+
+    setActiveView(Views.robberView);
+
     if (
-      filteredPlayers.every(
+      players.every(
         (player) =>
           Object.values(player.resourceCards).reduce(
             (sum, el) => el + sum,
             0
-          ) <= 7
+          ) <= ROBBER_TOKEN_NUMBER
       )
     ) {
       setUpdateMessage(
-        "There is no player who has more than 7 resource cards."
+        `There are no players who has more than ${ROBBER_TOKEN_NUMBER} resource cards.`
       );
-      changeView("robberViewPhase2");
-      changeActiveLayer("tilesLayer");
+      setActiveView(Views.robberViewPhase2);
+      setActiveLayer(Layers.tilesLayer);
+
       return;
     }
+
     const cardsToKeep = [...amountOfRemainingResourcesForPlayers];
-    filteredPlayers.forEach((player, i) => {
+
+    players.forEach((player, i) => {
       const count = Object.values(player.resourceCards).reduce(
         (sum, el) => el + sum,
         0
@@ -226,28 +254,16 @@ const Board = () => {
         cardsToKeep[i] = count - Math.trunc(count / 2);
       }
     });
+
     setAmountOfRemainingResourcesForPlayers(cardsToKeep);
     setPlayerToSelectResources(0);
   };
 
-  const handleDiceRoll = () => {
-    const playersNewResources = filteredPlayers.map((player) => ({
+  const setResourcesFromRolledTokenNumber = (rolledTile) => {
+    const playersNewResources = players.map((player) => ({
       name: player.name,
-      newResource: [],
+      newResource: {},
     }));
-
-    const newDiceRoll = diceRoll.map(() => generateRandomNumber(1, 6));
-    setDiceRoll(newDiceRoll);
-
-    const rolledTile = newDiceRoll.reduce((sum, curr) => sum + curr, 0);
-
-    if (rolledTile === 7) {
-      setTimeout(() => {
-        handleActiveRobber();
-      }, 2000);
-
-      return;
-    }
 
     const filteredTiles = tiles
       .flat()
@@ -257,77 +273,159 @@ const Board = () => {
       if (!tile.isActive) {
         return;
       }
-      const resource = terrainTypes.find(
+
+      const resource = TerrainTypes.find(
         (type) => type.id === tile.terrainId
       ).produce;
+
       tile.settlements.forEach((settlement) => {
-        const player = filteredPlayers.find((player) =>
-          player.settlements.find((el) => el === settlement)
-        );
-        if (player) {
-          addResourceCard(resource, player.name);
-          playersNewResources
-            .find((el) => el.name === player.name)
-            .newResource.push(resource);
+        const playerName = players.find(
+          (player) =>
+            player.settlements.find((el) => el === settlement) ||
+            player.cities.find((el) => el === settlement)
+        )?.name;
+
+        if (playerName) {
+          const playerPosition = playersNewResources.findIndex(
+            (el) => el.name === playerName
+          );
+
+          let amount = players[playerPosition].settlements.find(
+            (el) => el === settlement
+          )
+            ? 1
+            : 2;
+
+          if (playersNewResources[playerPosition].newResource[resource]) {
+            amount += playersNewResources[playerPosition].newResource[resource];
+          }
+
+          playersNewResources[playerPosition] = {
+            ...playersNewResources[playerPosition],
+            newResource: {
+              ...playersNewResources[playerPosition].newResource,
+              [resource]: amount,
+            },
+          };
         }
       });
     });
 
-    const message = playersNewResources.every(
-      (player) => player.newResource.length === 0
+    const resources = TerrainTypes.map((el) => el.produce).filter(
+      (el) => el !== "nothing"
+    );
+
+    resources.forEach((resource) => {
+      const playersToAddResource = playersNewResources.filter((player) =>
+        Object.keys(player.newResource).some((el) => el === resource)
+      );
+      const amountResourceToAdd = playersNewResources.reduce(
+        (count, player) => count + player.newResource[resource],
+        0
+      );
+      const amountTakenResource = players.reduce(
+        (count, player) => count + player.resourceCards[resource],
+        0
+      );
+
+      if (
+        amountTakenResource === TOTAL_NUMBER_OF_EACH_RESOURCE ||
+        (amountTakenResource + amountResourceToAdd >=
+          TOTAL_NUMBER_OF_EACH_RESOURCE &&
+          playersToAddResource.length > 1)
+      ) {
+        playersNewResources.forEach((_, i) => {
+          playersNewResources[i].newResource[resource] = 0;
+        });
+
+        return;
+      } else if (
+        amountResourceToAdd + amountTakenResource >
+          TOTAL_NUMBER_OF_EACH_RESOURCE &&
+        playersToAddResource.length === 1
+      ) {
+        const amount = TOTAL_NUMBER_OF_EACH_RESOURCE - amountTakenResource;
+        amount;
+        const position = playersNewResources.findIndex(
+          (player) => playersToAddResource[0].name === player.name
+        );
+        playersNewResources[position].newResource[resource] = amount;
+      }
+    });
+
+    playersNewResources.forEach((player) => {
+      player;
+      Object.entries(player.newResource).forEach(([key, value]) => {
+        key, player.name, value;
+        addResourceCard(key, player.name, value);
+      });
+    });
+
+    const message = playersNewResources.every((player) =>
+      Object.keys(player.newResource).every((key) => key === 0)
     )
       ? `There are no resources to add.`
       : `Added resources:` +
         "\n" +
         "\n" +
         playersNewResources
-          .filter((players) => players.newResource.length > 0)
+          .filter((el) => Object.values(el.newResource).length > 0)
           .map(
             (el) => `${el.name} :  
-            ${el.newResource.join(", ")}`
+            ${Object.entries(el.newResource)
+              .map(
+                ([key, value]) =>
+                  `${
+                    key === 0 ? "There are no available resources." : key
+                  } : ${value}`
+              )
+              .join(", ")}`
           )
           .join("\n");
-    setUpdateMessage(message);
 
-    setTimeout(() => {
-      setDiceRoll(diceRoll.map(() => null));
-      changeView("tradeView");
-    }, 2000);
+    setUpdateMessage(message);
+  };
+
+  const handleDiceRoll = () => {
+    const newDiceRoll = diceRoll.map(() =>
+      generateRandomNumber(MIN_DICE_ROLL, MAX_DICE_ROLL)
+    );
+
+    setDiceRoll(newDiceRoll);
+
+    const rolledTile = newDiceRoll.reduce((sum, curr) => sum + curr, 0);
+
+    if (rolledTile === ROBBER_TOKEN_NUMBER) {
+      setTimeout(() => {
+        handleActiveRobber();
+      }, 2000);
+
+      return;
+    } else {
+      setResourcesFromRolledTokenNumber(rolledTile);
+
+      setTimeout(() => {
+        setDiceRoll(diceRoll.map(() => null));
+        setActiveView(Views.tradeView);
+      }, 2000);
+    }
   };
 
   const handleBuildSettlementOrCity = () => {
     setError("");
-    changeActiveLayer("settlementsLayer");
-    setPanelMessage(
-      <>
-        <p className={classes.paragraph}>
-          Click on settlement you want to choose.
-        </p>
-        <Button
-          onClick={handleChangeViewToBuildPhase}
-          value="Go back to build menu"
-        ></Button>
-      </>
-    );
+    setActiveLayer(Views.settlementsLayer);
+    setActiveView(Views.buildElementView);
   };
 
   const handleBuildRoad = () => {
     setError("");
-    changeActiveLayer("roadsLayer");
-    setPanelMessage(
-      <>
-        <p className={classes.paragraph}>Click on road you want to choose.</p>
-        <Button
-          onClick={handleChangeViewToBuildPhase}
-          value="Go back to build menu"
-        ></Button>
-      </>
-    );
+    setActiveLayer(Layers.roadsLayer);
+    setActiveView(Views.buildElementView);
   };
 
   const handleBuyDevelopmentCard = () => {
     const hasPlayerEnoughResources = Object.entries(
-      resourcesForBuild.developmentCard
+      ResourcesForBuild.developmentCard
     ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
 
     if (!hasPlayerEnoughResources) {
@@ -335,14 +433,14 @@ const Board = () => {
       return;
     }
 
-    const countOfTakenKnightCards = filteredPlayers.reduce(
+    const countOfTakenKnightCards = players.reduce(
       (count, player) =>
         count +
         player.developmentCards.filter((card) => card.type === "knights")
           .length,
       0
     );
-    const countOfTakenVictoryPointCards = filteredPlayers.reduce(
+    const countOfTakenVictoryPointCards = players.reduce(
       (count, player) =>
         count +
         player.developmentCards.filter((card) => card.type === "victoryPoint")
@@ -369,49 +467,39 @@ const Board = () => {
     }
 
     addDevelopmentCard(cardType, activePlayer.name);
-    Object.entries(resourcesForBuild.developmentCard).forEach(([key, value]) =>
+
+    Object.entries(ResourcesForBuild.developmentCard).forEach(([key, value]) =>
       removeResourceCard(key, activePlayer.name, value)
     );
-    changeView("buildView");
+
+    setActiveView(Views.buildView);
   };
 
   const handleChangeViewToBuildPhase = () => {
+    setPanelMessage("");
     setError("");
-    changeActiveLayer("none");
-    setPanelMessage(
-      <>
-        <p className={classes.paragraph}>Choose what you want to build/buy</p>
-        <div className={classes.buttonsContainer}>
-          <SelectButton onClick={handleBuildSettlementOrCity}>
-            Settlement/city
-          </SelectButton>
-          <SelectButton onClick={handleBuildRoad}>Road</SelectButton>
-          <SelectButton onClick={handleBuyDevelopmentCard}>
-            Development card
-          </SelectButton>
-        </div>
-      </>
-    );
-    changeView("buildView");
+    setActiveLayer(Layers.none);
+    setActiveView(Views.buildView);
     setLongestRoad();
   };
 
   const handleFinishedTurn = () => {
+    setError("");
+    setIsKnightUsed(false);
     updatePlayersOnFinishedTurn();
-    changeView("resourceProductionView");
+    setActiveView(Views.resourceProductionView);
   };
 
   const setLongestRoad = () => {
-    console.log(filteredPlayers);
     if (
       longestRoadOwner &&
-      longestRoadOwner !== filteredPlayers.find((player) => player.isActive)
+      longestRoadOwner !== players.find((player) => player.isActive).name
     ) {
       const playerLongestRoad = getPlayerLongestRoad(longestRoadOwner);
-      console.log(playerLongestRoad);
+
       if (playerLongestRoad < longestRoadLength) {
-        const playersRoadLength = filteredPlayers.map((player) =>
-          player.name === longestRoadOwner.name
+        const playersRoadLength = players.map((player) =>
+          player.name === longestRoadOwner
             ? playerLongestRoad
             : getPlayerLongestRoad(player)
         );
@@ -432,7 +520,7 @@ const Board = () => {
             (road) => road === maxRoadLength
           );
           setLongestRoadLength(playerLongestRoad);
-          setLongestRoadOwner(filteredPlayers[index]);
+          setLongestRoadOwner(players[index].name);
         } else {
           setLongestRoadLength(MIN_LONGEST_ROAD);
           setLongestRoadOwner(null);
@@ -444,20 +532,22 @@ const Board = () => {
       (!longestRoadOwner && longestRoadLength <= activePlayer.roads.length) ||
       longestRoadLength < activePlayer.roads.length
     ) {
-      const playerLongestRoad = getPlayerLongestRoad(activePlayer);
+      const playerLongestRoad = getPlayerLongestRoad(activePlayer.name);
 
       if (
         (!longestRoadOwner && playerLongestRoad >= longestRoadLength) ||
         (longestRoadOwner && playerLongestRoad > longestRoadLength)
       ) {
-        setLongestRoadOwner(activePlayer);
+        setLongestRoadOwner(activePlayer.name);
         setLongestRoadLength(playerLongestRoad);
       }
     }
   };
 
-  const getPlayerLongestRoad = (player) => {
+  const getPlayerLongestRoad = (playerName) => {
     let longestRoad = 0;
+
+    const player = players.find((player) => player.name === playerName);
 
     player.roads.forEach((playerRoad) => {
       const roadsMappedByDistance = [[playerRoad]];
@@ -490,15 +580,17 @@ const Board = () => {
 
         if (
           nextNeighbours.length === 0 ||
-          filteredPlayers.find(
+          players.find(
             (play) =>
               play.name !== player.name &&
-              play.settlements.some(
+              (play.settlements.some(
                 (settlement) => settlement === Number(findConnection)
-              )
+              ) ||
+                play.cities.some((city) => city === Number(findConnection)))
           )
         ) {
           isComplete = true;
+
           if (roadsMappedByDistance.length > longestRoad) {
             longestRoad = roadsMappedByDistance.length;
           }
@@ -515,8 +607,8 @@ const Board = () => {
 
   const handleStartGame = () => {
     setInitialTiles();
-    changeView("setupGameView");
-    changeActiveLayer("settlementsLayer");
+    setActiveView(Views.setupGameView);
+    setActiveLayer(Layers.settlementsLayer);
   };
 
   const handleNewRound = () => {
@@ -526,40 +618,46 @@ const Board = () => {
     setLongestRoadOwner(null);
     setLongestRoadLength(MIN_LONGEST_ROAD);
     setPanelMessage("");
-    changeView("startGameView");
+    setActiveView(Views.startGameView);
   };
 
   const getPanelActionButtons = () => {
-    if (view.activeView === "startGameView") {
-      return <Button onClick={handleStartGame} value="Start game" />;
-    } else if (view.activeView === "finishedGameView") {
-      return <Button onClick={handleNewRound} value="Play new round" />;
-    } else {
-      if (view.activeView === "resourceProductionView" && isDiceRolled) {
+    if (view.activeView === Views.startGameView) {
+      return <Button onClick={handleStartGame}>Start game</Button>;
+    } else if (view.activeView === Views.finishedGameView) {
+      return <Button onClick={handleNewRound}>Play new round</Button>;
+    } else if (
+      view.activeView === Views.resourceProductionView ||
+      view.activeView === Views.tradeView ||
+      view.activeView === Views.buildView
+    ) {
+      if (isDiceRolled) {
         return;
       }
 
       return (
         <div className={classes.panelActionsContainer}>
-          {activePlayer.developmentCards.some(
-            (card) => card.type === "knights" && card.isActive && !card.isUsed
-          ) && <Button onClick={handleKnight} value="Use knight"></Button>}
+          {!isKnightUsed &&
+            activePlayer.developmentCards.some(
+              (card) => card.type === "knights" && card.isActive && !card.isUsed
+            ) && <Button onClick={handleKnight}>Use knight</Button>}
 
           {view.activeView === "tradeView" && (
-            <Button
-              value="Go to build phase"
-              onClick={handleChangeViewToBuildPhase}
-            />
+            <Button onClick={handleChangeViewToBuildPhase}>
+              Go to build phase
+            </Button>
           )}
           {view.activeView === "buildView" && (
             <>
               <Button
                 onClick={() => {
-                  changeView("tradeView");
+                  setError("");
+                  setActiveView("tradeView");
                 }}
-                value="Go to trade phase"
-              ></Button>
-              <Button onClick={handleFinishedTurn} value="Finish your turn" />
+              >
+                Go to trade phase
+              </Button>
+              <Button onClick={handleFinishedTurn}>Finish your turn</Button>
             </>
           )}
         </div>
@@ -568,26 +666,26 @@ const Board = () => {
   };
 
   const getPanelView = () => {
-    if (view.activeView === "setupGameView") {
+    if (view.activeView === Views.setupGameView) {
       return (
         <>
-          <h3 className={classes.title}>Setup: </h3>
+          <h3 className={classes.panelTitle}>Setup: </h3>
           <p>
             Please {activePlayer.name} choose{" "}
-            {view.activeLayer === "settlementsLayer" ? "settlement" : "road"}{" "}
+            {view.activeLayer === Layers.settlementsLayer
+              ? "settlement"
+              : "road"}{" "}
           </p>
         </>
       );
-    } else if (view.activeView === "resourceProductionView") {
+    } else if (view.activeView === Views.resourceProductionView) {
       return (
         <>
-          <h3 className={classes.title}>Resource production :</h3>
-          <div className={classes.panelWrapper}>
-            <Button
-              isDisabled={isDiceRolled}
-              onClick={handleDiceRoll}
-              value="Roll dice"
-            />
+          <h3 className={classes.panelTitle}>Resource production :</h3>
+          <div className={classes.diceWrapper}>
+            <Button isDisabled={isDiceRolled} onClick={handleDiceRoll}>
+              Roll dice
+            </Button>
             <div className={`${classes.die} ${classes.red}`}>
               <span>{diceRoll[0]}</span>
             </div>
@@ -597,18 +695,18 @@ const Board = () => {
           </div>
         </>
       );
-    } else if (view.activeView === "robberView") {
+    } else if (view.activeView === Views.robberView) {
       return (
         <>
           <p>
-            {filteredPlayers[playerToSelectResources]?.name} you can keep{" "}
-            {amountOfRemainingResourcesForPlayers[playerToSelectResources]}
+            {players[playerToSelectResources]?.name} you can keep{" "}
+            {amountOfRemainingResourcesForPlayers[playerToSelectResources]}{" "}
             resource cards. Please click on resources you want to give to the
             bank.
           </p>
         </>
       );
-    } else if (view.activeView === "robberViewPhase2") {
+    } else if (view.activeView === Views.robberViewPhase2) {
       return (
         <>
           <p>
@@ -617,18 +715,18 @@ const Board = () => {
           </p>
         </>
       );
-    } else if (view.activeView === "robberViewPhase3") {
+    } else if (view.activeView === Views.robberViewPhase3) {
       return <>{panelMessage}</>;
     } else if (
-      view.activeView === "tradeView" ||
-      view.activeView === "tradeViewPhase2"
+      view.activeView === Views.tradeView ||
+      view.activeView === Views.tradeViewPhase2
     ) {
       return (
         <>
-          <h3 className={classes.title}>Trade with bank :</h3>
-          {view.activeView === "tradeView" && (
+          <h3 className={classes.panelTitle}>Trade with bank :</h3>
+          {view.activeView === Views.tradeView && (
             <>
-              <p className={classes.paragraph}>
+              <p className={classes.panelParagraph}>
                 {Object.values(activePlayer.resourceCards).find(
                   (card) => card >= 4
                 )
@@ -637,26 +735,67 @@ const Board = () => {
               </p>
             </>
           )}
-          {view.activeView === "tradeViewPhase2" && (
+          {view.activeView === Views.tradeViewPhase2 && (
             <p>Click on resource which you want to add</p>
           )}
         </>
       );
-    } else if (view.activeView === "buildView") {
+    } else if (view.activeView === Views.buildView) {
       return (
         <>
-          <h3 className={classes.title}>Build :</h3>
-          {panelMessage}
+          <h3 className={classes.panelTitle}>Build :</h3>
+          {panelMessage !== "" && panelMessage}
+          {panelMessage === "" && (
+            <>
+              <p className={classes.panelParagraph}>
+                Choose what you want to build/buy
+              </p>
+              <div className={classes.panelButtonsContainer}>
+                <SelectButton onClick={handleBuildSettlementOrCity}>
+                  Settlement/city
+                </SelectButton>
+                <SelectButton onClick={handleBuildRoad}>Road</SelectButton>
+                <SelectButton onClick={handleBuyDevelopmentCard}>
+                  Development card
+                </SelectButton>
+              </div>
+            </>
+          )}
         </>
       );
-    } else if (view.activeView === "finishedGameView") {
+    } else if (view.activeView === Views.buildElementView) {
       return (
         <>
-          <p className={classes.paragraph}>Winner is {activePlayer.name}</p>
+          <p className={classes.panelParagraph}>
+            Click on{" "}
+            {view.activeLayer === Layers.settlementsLayer
+              ? "settlement"
+              : "road"}{" "}
+            you want to choose.
+          </p>
+          <Button onClick={handleChangeViewToBuildPhase}>
+            Go back to build menu
+          </Button>
+        </>
+      );
+    } else if (view.activeView === Views.finishedGameView) {
+      return (
+        <>
+          <p className={classes.panelParagraph}>
+            Winner is {activePlayer.name}
+          </p>
         </>
       );
     }
   };
+
+  const showResourceCard =
+    (view.activeView === Views.robberView &&
+      playerToSelectResources !== null) ||
+    view.activeView === Views.tradeView ||
+    view.activeView === Views.tradeViewPhase2 ||
+    view.activeView === Views.buildView ||
+    view.activeView === Views.buildElementView;
 
   return (
     <div className={classes.container}>
@@ -666,18 +805,8 @@ const Board = () => {
             largestArmyOwner={largestArmyOwner}
             longestRoadOwner={longestRoadOwner}
           />
-          {((view.activeView === "robberView" &&
-            playerToSelectResources !== null) ||
-            view.activeView === "tradeView" ||
-            view.activeView === "tradeViewPhase2" ||
-            view.activeView === "buildView") && (
-            <PlayerCards
-              player={
-                view.activeView === "robberView"
-                  ? filteredPlayers[playerToSelectResources]
-                  : activePlayer
-              }
-            />
+          {showResourceCard && (
+            <PlayerCards playerName={players[playerToSelectResources]?.name} />
           )}
         </div>
         <div>
@@ -685,25 +814,29 @@ const Board = () => {
             <div className={classes.layersWrapper}>
               <div
                 className={`${classes.layer} ${
-                  view.activeLayer === "tilesLayer" ? classes.top : ""
+                  view.activeLayer === Layers.tilesLayer ? classes.topLayer : ""
                 }`}
               >
                 <TilesLayer onClick={handleTileClicked} />
               </div>
               <div
                 className={`${classes.layer} ${
-                  view.activeLayer === "roadsLayer" ? classes.top : ""
+                  view.activeLayer === Layers.roadsLayer ? classes.topLayer : ""
                 }`}
               >
-                <RoadsLayer isLayerActive={view.activeLayer === "roadsLayer"} />
+                <RoadsLayer
+                  isLayerActive={view.activeLayer === Layers.roadsLayer}
+                />
               </div>
               <div
                 className={`${classes.layer} ${
-                  view.activeLayer === "settlementsLayer" ? classes.top : ""
+                  view.activeLayer === Layers.settlementsLayer
+                    ? classes.topLayer
+                    : ""
                 }`}
               >
                 <SettlementsLayer
-                  isLayerActive={view.activeLayer === "settlements"}
+                  isLayerActive={view.activeLayer === Layers.settlementsLayer}
                 />
               </div>
             </div>
@@ -718,13 +851,13 @@ const Board = () => {
               </Error>
             )}
           </div>
-          <div className={classes.panel}>
+          <div className={classes.panelContainer}>
             <div className={classes.panelContainer}>{getPanelView()}</div>
             {getPanelActionButtons()}
           </div>
         </div>
         <Legend />
-        <div className={classes.updatePanel}>
+        <div className={classes.updateMessageContainer}>
           {view.updateMessage !== "" && <p>{view.updateMessage}</p>}
         </div>
       </div>

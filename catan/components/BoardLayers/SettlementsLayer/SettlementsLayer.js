@@ -2,6 +2,8 @@ import { useViewsContext } from "providers/hooks";
 
 import { setInitialSettlements } from "helpers/initializeBoardElements";
 
+import { Layers } from "consts";
+
 import Settlement from "components/UI/Settlement";
 
 import classes from "./SettlementsLayer.module.css";
@@ -14,7 +16,7 @@ const SettlementsLayer = () => {
     <div className={classes.container}>
       {settlements.map((row, i) => (
         <div key={i} className={classes.row}>
-          {view.activeLayer !== "tilesLayer" &&
+          {view.activeLayer !== Layers.tilesLayer &&
             row.map((settlement, j) => (
               <Settlement
                 key={i - j}
