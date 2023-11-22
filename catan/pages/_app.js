@@ -1,5 +1,6 @@
-import Layout from "components/Layout";
 import PlayersProvider from "providers/players";
+
+import Layout from "components/Layout";
 
 import "styles/globals.css";
 

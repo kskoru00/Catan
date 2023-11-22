@@ -1,4 +1,7 @@
 .error {
   color: var(--red);
+  margin-top: 12px;
+  margin-right: 64px;
   margin-bottom: 12px;
+  margin-left: 64px;
 }

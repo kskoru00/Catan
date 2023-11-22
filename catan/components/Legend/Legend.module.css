@@ -1,15 +1,15 @@
 .container {
-  width: 280px;
-  height: 240px;
+  width: calc(var(--layerWidth) / 2);
+  height: calc(var(--layerHeight) / 2);
   border: 2px solid var(--brown);
   border-radius: 5px;
   padding: 12px;
 }
 .title {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 .wrapper {
-  height: 150px;
+  height: 80%;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
@@ -30,15 +30,15 @@
   margin-right: 12px;
 }
 .polygon {
-  width: 15px;
-  height: 17px;
+  width: calc(var(--polygon-width) / 7);
+  height: calc(var(--polygon-height) / 7);
   display: inline-block;
   clip-path: polygon(0% 25%, 0% 75%, 50% 100%, 100% 75%, 100% 25%, 50% 0%);
   background-color: var(--dark-brown);
 }
 .settlement {
-  width: 10px;
-  height: 10px;
+  width: var(--settlement);
+  height: var(--settlement);
   border: none;
   background-color: var(--black);
 }

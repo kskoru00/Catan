@@ -10,6 +10,8 @@ import {
   ResourcesForBuild,
 } from "consts";
 
+import { hasPlayerEnoughResources } from "helpers";
+
 import classes from "./Settlement.module.css";
 
 const Settlement = ({ id, neighbours }) => {
@@ -47,6 +49,7 @@ const Settlement = ({ id, neighbours }) => {
         player.settlements.some((settlement) => settlement === el)
       )
     );
+
     const isSettlementSettled = players
       .filter((player) => player.name !== activePlayer.name)
       .some(
@@ -69,8 +72,8 @@ const Settlement = ({ id, neighbours }) => {
 
     if (view.activeView === Views.setupGameView) {
       handleAddSettlementOnSetup();
-    } else if (view.activeView === ViewsbuildElementView) {
-      handleAddSettlmentOrCityOnBuild();
+    } else if (view.activeView === Views.buildElementView) {
+      handleAddSettlementOrCityOnBuild();
     }
   };
 
@@ -86,7 +89,7 @@ const Settlement = ({ id, neighbours }) => {
     setActiveLayer(Layers.roadsLayer);
   };
 
-  const handleAddSettlmentOrCityOnBuild = () => {
+  const handleAddSettlementOrCityOnBuild = () => {
     const hasPlayerRoadOnSettlement = activePlayer.roads.some(
       (road) =>
         Number(road.split("-")[0]) === id || Number(road.split("-")[1]) === id
@@ -117,14 +120,8 @@ const Settlement = ({ id, neighbours }) => {
       return;
     }
 
-    const hasPlayerEnoughResources = Object.entries(
-      ResourcesForBuild[typeForBuild]
-    ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
-
-    if (!hasPlayerEnoughResources) {
-      setError(
-        `You don't have enough resources for building ${type}. Please go back to trade or finish your turn.`
-      );
+    if (!hasPlayerEnoughResources(typeForBuild, activePlayer)) {
+      setError(`You don't have enough resources for building ${typeForBuild}.`);
 
       return;
     }
@@ -150,7 +147,7 @@ const Settlement = ({ id, neighbours }) => {
       <button
         disabled={view.activeLayer !== Layers.settlementsLayer}
         onClick={handleClick}
-        className={`${classes[type]} ${classes[color]}`}
+        className={`${classes[type]}  ${classes[color]}`}
       ></button>
     </div>
   );

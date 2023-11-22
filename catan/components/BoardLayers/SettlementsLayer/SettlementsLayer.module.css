@@ -1,18 +1,14 @@
-.container {
-  width: 520px;
-  height: 479px;
-}
 .row {
   display: flex;
   justify-content: center;
 }
 .row:not(:last-child) {
   margin-bottom: calc(
-    var(--polygon-height) / 4 - calc(var(--settlementContainer))
+    var(--polygon-height) / 4 - calc((var(--settlementContainer)))
   );
 }
 .row:nth-child(even) {
   margin-bottom: calc(
-    var(--polygon-height) / 2 - calc(var(--settlementContainer))
+    var(--polygon-height) / 2 - calc((var(--settlementContainer)))
   );
 }

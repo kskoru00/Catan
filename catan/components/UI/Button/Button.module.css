@@ -1,11 +1,15 @@
+.container {
+  display: flex;
+  justify-content: center;
+}
 .button {
-  font-size: 14px;
   cursor: pointer;
-  padding: 5px 10px;
+  font-size: 14px;
   color: var(--dark-brown);
   background-color: var(--light-brown);
   border: 2px solid var(--dark-brown);
   border-radius: 5px;
+  padding: 5px 10px;
 }
 .button:hover {
   color: var(--light-brown);

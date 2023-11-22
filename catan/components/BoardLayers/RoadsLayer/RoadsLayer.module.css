@@ -1,11 +1,9 @@
-.container {
-  width: 520px;
-  height: 479px;
-}
 .row {
   display: flex;
   justify-content: center;
 }
 .row:first-child {
-  margin-top: calc(var(--settlementContainer) / 2);
+  margin-top: calc(
+    calc(var(--settlementContainer) / 2) + calc(var(--road) / 2)
+  );
 }

@@ -8,7 +8,7 @@ const TilesLayer = ({ onClick }) => {
   const { tiles } = useTileContext();
 
   return (
-    <div className={classes.container}>
+    <>
       {tiles.map((row, i) => (
         <div key={i} className={classes.row}>
           {row.map((tile, j) => (
@@ -22,7 +22,7 @@ const TilesLayer = ({ onClick }) => {
           ))}
         </div>
       ))}
-    </div>
+    </>
   );
 };
 

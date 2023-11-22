@@ -1,6 +1,6 @@
 import classes from "./Input.module.css";
 
-const Input = ({ label, value, onChange }) => {
+const Input = ({ label, onChange }) => {
   const handleInputChange = (e) => {
     onChange(e.target.value);
   };
@@ -10,8 +10,6 @@ const Input = ({ label, value, onChange }) => {
       <span className={classes.title}>{label}</span>
       <input
         className={classes.input}
-        placeholder={value}
-        name={value}
         type="text"
         onChange={handleInputChange}
       />

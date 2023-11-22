@@ -23,13 +23,11 @@ const CreateGame = () => {
     [Players.playerFour]: players.playerFour.name,
   });
 
-  const [isError, setIsError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const handleNameChange = (player) => (value) => {
-    if (isError) {
-      setIsError(false);
-      setErrorMessage("");
+    if (errorMessage) {
+      setErrorMessage(null);
     }
 
     setPlayerNames((prevPlayerNames) => ({
@@ -55,14 +53,12 @@ const CreateGame = () => {
     );
 
     if (filteredPlayerNames.length < MIN_NUMBER_OF_PLAYERS) {
-      setIsError(true);
       setErrorMessage(
         `Number of players is below minimum(${MIN_NUMBER_OF_PLAYERS})! Please add more players.`
       );
 
       return;
     } else if (!areAllNamesUniqe) {
-      setIsError(true);
       setErrorMessage("All players must have uniqe names!");
 
       return;
@@ -83,8 +79,8 @@ const CreateGame = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={classes.form}>
-      {isError && (
+    <div className={classes.container}>
+      {errorMessage && (
         <Error>
           <p>
             **
@@ -92,30 +88,18 @@ const CreateGame = () => {
           </p>
         </Error>
       )}
-      <div className={classes.container}>
-        <Input
-          label="Player one"
-          value={playerNames[Players.playerOne]}
-          onChange={handleNameChange(Players.playerOne)}
-        />
-        <Input
-          label="Player two"
-          value={playerNames[Players.playerTwo]}
-          onChange={handleNameChange(Players.playerTwo)}
-        />
-        <Input
-          label="Player three"
-          value={playerNames[Players.playerThree]}
-          onChange={handleNameChange(Players.playerThree)}
-        />
-        <Input
-          label="Player four"
-          value={playerNames[Players.playerFour]}
-          onChange={handleNameChange(Players.playerFour)}
-        />
-      </div>
-      <Button>Create new game</Button>
-    </form>
+      <form onSubmit={handleSubmit}>
+        {Object.entries(playerNames).map(([key, value], i) => (
+          <Input
+            key={key}
+            label={`Player ${i + 1}:`}
+            value={value}
+            onChange={handleNameChange(key)}
+          />
+        ))}
+        <Button>Create new game</Button>
+      </form>
+    </div>
   );
 };
 

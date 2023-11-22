@@ -5,11 +5,14 @@
   align-items: center;
   justify-content: center;
 }
+.container:not(:last-child) {
+  margin-right: calc(var(--polygon-width) - var(--settlementContainer));
+}
 .settlement {
   width: var(--settlement);
   height: var(--settlement);
-  border: none;
   background-color: var(--black);
+  border: none;
   cursor: pointer;
 }
 .settlement:disabled {
@@ -18,11 +21,9 @@
 .city {
   width: 18px;
   height: 12px;
-  border: none;
   background-color: var(--black);
-}
-.container:not(:last-child) {
-  margin-right: calc(var(--polygon-width) - var(--settlementContainer));
+  border: none;
+  cursor: default;
 }
 .red {
   background-color: var(--red);

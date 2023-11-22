@@ -2,7 +2,7 @@ import SelectButton from "components/UI/SelectButton";
 
 import classes from "./ResourceCard.module.css";
 
-const Resource = ({ type, amount, onClick, isDisabled }) => {
+const ResourceCard = ({ type, amount, onClick, isDisabled }) => {
   return (
     <div className={classes.resourceItem}>
       <SelectButton
@@ -18,4 +18,4 @@ const Resource = ({ type, amount, onClick, isDisabled }) => {
   );
 };
 
-export default Resource;
+export default ResourceCard;

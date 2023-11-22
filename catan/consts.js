@@ -41,11 +41,6 @@ export const PlayerColors = [
   { id: 3, color: "red" },
 ];
 
-export const NUMBER_OF_TILES_IN_ROW = [3, 4, 5, 4, 3];
-export const NUMBER_OF_SETTLEMENTS_IN_ROW = [
-  3, 4, 4, 5, 5, 6, 6, 5, 5, 4, 4, 3,
-];
-
 export const TerrainTypes = [
   {
     id: 0,
@@ -86,7 +81,7 @@ export const TerrainTypes = [
     id: 5,
     name: "dessert",
     amount: 1,
-    produce: "nothing",
+    produce: null,
     color: "brown",
   },
 ];

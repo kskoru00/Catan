@@ -1,6 +1,7 @@
-import Board from "components/Board";
 import TilesProvider from "providers/tiles";
 import ViewsProvider from "providers/views";
+
+import Board from "components/Board";
 
 const Game = () => {
   return (

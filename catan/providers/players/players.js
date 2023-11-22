@@ -4,61 +4,34 @@ import { Players, TerrainTypes } from "consts";
 
 import { generateRandomColor, generateRandomNumber } from "helpers";
 
-const terrainResources = TerrainTypes.map((terrain) => terrain.produce);
-const resourceCards = {};
+const terrainResources = TerrainTypes.filter((terrain) => terrain.produce).map(
+  (terrain) => terrain.produce
+);
 
-terrainResources.forEach((resource) => {
-  if (resource !== "nothing") {
-    resourceCards[resource] = 0;
-  }
-});
+const resourceCards = terrainResources.reduce(
+  (obj, key) => ((obj[key] = 0), obj),
+  {}
+);
 
-const initialState = {
-  [Players.playerOne]: {
-    name: "",
-    color: null,
-    isActive: false,
-    settlements: [],
-    cities: [],
-    roads: [],
-    resourceCards,
-    developmentCards: [],
-  },
-  [Players.playerTwo]: {
-    name: "",
-    color: null,
-    isActive: false,
-    settlements: [],
-    cities: [],
-    roads: [],
-    resourceCards,
-    developmentCards: [],
-  },
-  [Players.playerThree]: {
-    name: "",
-    color: null,
-    isActive: false,
-    settlements: [],
-    cities: [],
-    roads: [],
-    resourceCards,
-    developmentCards: [],
-  },
-  [Players.playerFour]: {
-    name: "",
-    color: null,
-    isActive: false,
-    settlements: [],
-    cities: [],
-    roads: [],
-    resourceCards,
-    developmentCards: [],
-  },
+const initialObject = {
+  name: "",
+  color: null,
+  isActive: false,
+  settlements: [],
+  cities: [],
+  roads: [],
+  resourceCards,
+  developmentCards: [],
 };
+
+const initialState = Object.keys(Players).reduce(
+  (obj, key) => ((obj[key] = initialObject), obj),
+  {}
+);
 
 const SET_PLAYER = "SET_PLAYER";
 const SET_PLAYER_AS_ACTIVE = "SET_PLAYER_AS_ACTIVE";
-const SET_PLAYER_AS_UNACTIVE = "SET_PLAYER_AS_UNACTIVE";
+const SET_PLAYER_AS_INACTIVE = "SET_PLAYER_AS_INACTIVE";
 const ADD_PLAYER_SETTLEMENT = "ADD_PLAYER_SETTLEMENT";
 const REMOVE_PLAYER_SETTLEMENT = "REMOVE_PLAYER_SETTLEMENT";
 const ADD_PLAYER_CITY = "ADD_PLAYER_CITY";
@@ -83,7 +56,7 @@ export const PlayersContext = createContext({
   addResourceCard: () => {},
   removeResourceCard: () => {},
   addDevelopmentCard: () => {},
-  updatePlayersOnFinishedTurn: () => {},
+  updatePlayersOnFinishTurn: () => {},
   setDevelopmentCardAsUsed: () => {},
   initializePlayersForNewRound: () => {},
 });
@@ -112,7 +85,7 @@ const reducer = (state = initialState, action) => {
           isActive: true,
         },
       };
-    case SET_PLAYER_AS_UNACTIVE: {
+    case SET_PLAYER_AS_INACTIVE: {
       return {
         ...state,
         [action.payload.player]: {
@@ -269,12 +242,12 @@ const PlayersProvider = ({ children }) => {
     });
 
     const randomPlayerPosition = generateRandomNumber(0, playersArr.length - 1);
-    const activePlayer = playersArr[randomPlayerPosition];
+    const activePlayer = Object.keys(playersArr[randomPlayerPosition])[0];
 
     dispatch({
       type: SET_PLAYER_AS_ACTIVE,
       payload: {
-        player: Object.keys(activePlayer)[0],
+        player: activePlayer,
       },
     });
   };
@@ -283,11 +256,11 @@ const PlayersProvider = ({ children }) => {
     (player) => player.name.length > 0
   );
 
-  const addPlayerSettlement = (settlementId) => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
+  const activePlayer = Object.keys(players).find(
+    (key) => players[key].isActive
+  );
 
+  const addPlayerSettlement = (settlementId) => {
     dispatch({
       type: ADD_PLAYER_SETTLEMENT,
       payload: {
@@ -303,10 +276,6 @@ const PlayersProvider = ({ children }) => {
   };
 
   const removePlayerSettlement = (settlementId) => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
-
     dispatch({
       type: REMOVE_PLAYER_SETTLEMENT,
       payload: {
@@ -317,10 +286,6 @@ const PlayersProvider = ({ children }) => {
   };
 
   const addPlayerCity = (cityId) => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
-
     dispatch({
       type: ADD_PLAYER_CITY,
       payload: {
@@ -330,20 +295,17 @@ const PlayersProvider = ({ children }) => {
     });
   };
 
-  const changeActivePlayer = (position) => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
+  const changeActivePlayer = (direction = 1) => {
     const activePlayerIndex = Object.values(filteredPlayers).findIndex(
       (player) => player.isActive
     );
-    const value = position ? position : 1;
+
     const nextActivePlayerIndex =
-      position && activePlayerIndex === 0
+      direction === -1 && activePlayerIndex === 0
         ? filteredPlayers.length - 1
-        : !position && activePlayerIndex === filteredPlayers.length - 1
+        : direction === 1 && activePlayerIndex === filteredPlayers.length - 1
         ? 0
-        : activePlayerIndex + value;
+        : activePlayerIndex + direction;
 
     const newActivePlayerName = filteredPlayers[nextActivePlayerIndex].name;
 
@@ -352,7 +314,7 @@ const PlayersProvider = ({ children }) => {
     );
 
     dispatch({
-      type: SET_PLAYER_AS_UNACTIVE,
+      type: SET_PLAYER_AS_INACTIVE,
       payload: {
         player: activePlayer,
       },
@@ -367,10 +329,6 @@ const PlayersProvider = ({ children }) => {
   };
 
   const updatePlayersRoads = (roadId) => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
-
     dispatch({
       type: UPDATE_PLAYERS_ROADS,
       payload: {
@@ -423,11 +381,7 @@ const PlayersProvider = ({ children }) => {
       },
     });
   };
-  const updatePlayersOnFinishedTurn = () => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
-
+  const updatePlayersOnFinishTurn = () => {
     dispatch({
       type: SET_DEVELOPMENT_CARD_AS_ACTIVE,
       payload: {
@@ -439,10 +393,6 @@ const PlayersProvider = ({ children }) => {
   };
 
   const setDevelopmentCardAsUsed = () => {
-    const activePlayer = Object.keys(players).find(
-      (key) => players[key].isActive
-    );
-
     const position = filteredPlayers
       .find((player) => player.isActive)
       .developmentCards.findIndex(
@@ -498,7 +448,7 @@ const PlayersProvider = ({ children }) => {
     changeActivePlayer,
     updateSettlementToCity,
     addDevelopmentCard,
-    updatePlayersOnFinishedTurn,
+    updatePlayersOnFinishTurn,
     setDevelopmentCardAsUsed,
     initializePlayersForNewRound,
   };

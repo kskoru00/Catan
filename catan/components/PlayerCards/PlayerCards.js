@@ -21,8 +21,8 @@ const PlayerCards = ({ playerName }) => {
   const [disabledResource, setDisabledResource] = useState(null);
   const [showKnightsDetails, setShowKnightsDetails] = useState(false);
 
-  const player = players.find((el) =>
-    playerName ? el.name === playerName : el.isActive
+  const player = players.find((player) =>
+    playerName ? player.name === playerName : player.isActive
   );
 
   const countKnightCards = player.developmentCards.filter(
@@ -70,7 +70,7 @@ const PlayerCards = ({ playerName }) => {
 
   return (
     <div className={`${classes.container} ${classes[player.color]}`}>
-      <h3 className={classes.title}>Player : {player.name}</h3>
+      <h3 className={classes.title}>Player: {player.name}</h3>
       <div className={classes.cards}>
         <h4 className={classes.subtitle}>Resource cards:</h4>
         {Object.entries(player.resourceCards).map(([key, value]) => (

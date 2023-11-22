@@ -1,20 +1,22 @@
 import { createContext, useState } from "react";
 
-import { setInitialTiles } from "helpers/initializeBoardElements";
+import {
+  Tiles,
+  generateRandomTerrainType,
+  generateRandomTokenNumber,
+} from "helpers";
 
-import { generateRandomTerrainType, generateRandomTokenNumber } from "helpers";
-
-const initialState = setInitialTiles();
+import { ROBBER_TOKEN_NUMBER } from "consts";
 
 export const TilesContext = createContext({
-  tiles: { ...initialState },
+  tiles: { ...Tiles },
   setInitialTiles: () => {},
   toggleTileIsActive: () => {},
   initializeTilesForNewRound: () => {},
 });
 
 const TilesProvider = ({ children }) => {
-  const [tiles, setTiles] = useState(initialState);
+  const [tiles, setTiles] = useState(Tiles);
 
   const setInitialTiles = () => {
     tiles.forEach((row, i) => {
@@ -31,6 +33,7 @@ const TilesProvider = ({ children }) => {
             ...newBoardTiles[i][j],
             terrainId,
             tokenNumber,
+            isActive: tokenNumber !== ROBBER_TOKEN_NUMBER ? true : null,
           };
 
           return newBoardTiles;

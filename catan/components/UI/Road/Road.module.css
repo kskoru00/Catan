@@ -8,15 +8,14 @@
 .verticalContainer:not(:last-child) {
   margin-right: calc(
     calc(var(--polygon-width) * 5 + var(--settlementContainer)) / 5 -
-      calc(var(--road) * 2) - 1px
+      calc(var(--road) * 2) - calc(var(--road) / 2)
   );
 }
 .button {
-  padding: 0;
   cursor: pointer;
-  background-color: var(--black);
   border: none;
   height: var(--road);
+  background-color: var(--black);
 }
 .left {
   transform: rotateY(0deg) rotate(-30deg);

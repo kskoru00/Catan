@@ -12,6 +12,8 @@ import {
   ResourcesForBuild,
 } from "consts";
 
+import { getRoadPosition, hasPlayerEnoughResources } from "helpers";
+
 import classes from "./Road.module.css";
 
 const Road = ({ id, row, positionInRow }) => {
@@ -36,25 +38,7 @@ const Road = ({ id, row, positionInRow }) => {
     player.roads.find((road) => road === id)
   )?.color;
 
-  const getPosition = () => {
-    if (row % 2 === 0) {
-      if (
-        (positionInRow % 2 === 0 && row < 5) ||
-        (positionInRow % 2 !== 0 && row > 5)
-      ) {
-        return "left";
-      } else if (
-        positionInRow % 2 !== 0 ||
-        (positionInRow % 2 === 0 && row > 5)
-      ) {
-        return "right";
-      }
-    } else {
-      return "vertical";
-    }
-  };
-
-  const position = getPosition();
+  const position = getRoadPosition(row, positionInRow);
 
   let buttonClassName = `${classes.button} ${classes[color]} ${classes[position]}`;
 
@@ -63,6 +47,7 @@ const Road = ({ id, row, positionInRow }) => {
       setError("This road is already selected.");
       return;
     }
+
     if (view.activeView === Views.setupGameView) {
       handleAddRoadOnSetup();
     } else if (view.activeView === Views.buildElementView) {
@@ -77,24 +62,22 @@ const Road = ({ id, row, positionInRow }) => {
       return;
     }
 
-    const hasPlayerEnoughResources = Object.entries(
-      ResourcesForBuild.road
-    ).every(([key, value]) => activePlayer.resourceCards[key] >= value);
-
-    if (!hasPlayerEnoughResources) {
-      setError(
-        "You don't have enough resources for building road. Please go back to trade or finish your turn."
-      );
+    if (!hasPlayerEnoughResources("road", activePlayer)) {
+      setError("You don't have enough resources for building road.");
 
       return;
     }
+
     const isRoadConnectedToPlayersSettlement = activePlayer.settlements.some(
       (settlement) => settlement === roadStart || settlement === roadEnd
     );
     const isRoadConnectToPlayersRoad = activePlayer.roads.some((road) =>
       road
         .split("-")
-        .some((el) => Number(el) === roadEnd || Number(el) === roadStart)
+        .some(
+          (roadEdge) =>
+            Number(roadEdge) === roadEnd || Number(roadEdge) === roadStart
+        )
     );
     if (!isRoadConnectToPlayersRoad && !isRoadConnectedToPlayersSettlement) {
       setError("You can't choose this road");
@@ -113,27 +96,34 @@ const Road = ({ id, row, positionInRow }) => {
   const setPlayersSetupResources = () => {
     const playersSetupResources = players.map((player) => ({
       name: player.name,
-      resources: [],
+      setupResources: {},
     }));
 
-    players.forEach((player) => {
+    players.forEach((player, playerPosition) => {
       player.settlements.forEach((settlement) => {
         const resourceCards = tiles
           .flat()
-          .filter((type) => type.settlements.find((el) => el === settlement))
-          .map((tile) => TerrainTypes[tile.terrainId].name)
-          .filter((card) => card !== "dessert")
-          .map(
-            (tileType) =>
-              TerrainTypes.find((type) => type.name === tileType).produce
-          );
+          .filter((tile) =>
+            tile.settlements.find(
+              (tileSettlement) => tileSettlement === settlement
+            )
+          )
+          .map((tile) => TerrainTypes[tile.terrainId].produce)
+          .filter((card) => card !== null);
 
-        resourceCards.forEach((card) => {
-          addResourceCard(card, player.name);
-          playersSetupResources
-            .find((el) => el.name === player.name)
-            .resources.push(card);
+        resourceCards.forEach((resource) => {
+          if (playersSetupResources[playerPosition].setupResources[resource]) {
+            playersSetupResources[playerPosition].setupResources[resource] += 1;
+          } else {
+            playersSetupResources[playerPosition].setupResources[resource] = 1;
+          }
         });
+      });
+    });
+
+    playersSetupResources.forEach((player) => {
+      Object.entries(player.setupResources).forEach(([key, value]) => {
+        addResourceCard(key, player.name, value);
       });
     });
 
@@ -143,7 +133,9 @@ const Road = ({ id, row, positionInRow }) => {
       playersSetupResources
         .map(
           (player) => `${player.name} :  
-            ${player.resources.join(", ")}`
+            ${Object.entries(player.setupResources)
+              .map(([key, value]) => `${key} : ${value}`)
+              .join(", ")}`
         )
         .join("\n");
 
@@ -197,7 +189,7 @@ const Road = ({ id, row, positionInRow }) => {
         settlementWithoutRoad !== roadEnd
       ) {
         setError(
-          "You can't select this road. In setup phase every city must have one selected road."
+          "You can't select this road.\n In setup phase every city must have one selected road."
         );
 
         return;
@@ -215,7 +207,7 @@ const Road = ({ id, row, positionInRow }) => {
       }
     >
       <button
-        disabled={view.activeLayer !== Views.roadsLayer}
+        disabled={view.activeLayer !== Layers.roadsLayer}
         onClick={handleClick}
         className={buttonClassName}
       ></button>

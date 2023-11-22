@@ -17,6 +17,12 @@
   --settlementContainer: 20px;
   --settlement: 10px;
   --road: 3px;
+  --layerHeight: calc(
+    calc(4 * var(--polygon-height)) + var(--settlementContainer)
+  );
+  --layerWidth: calc(
+    calc(5 * var(--polygon-width)) + var(--settlementContainer)
+  );
 }
 * {
   box-sizing: border-box;
@@ -37,4 +43,8 @@ h5,
 p {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+button {
+  padding: 0;
 }

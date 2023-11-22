@@ -2,7 +2,7 @@ import classes from "./Button.module.css";
 
 const Button = ({ children, onClick, isDisabled }) => {
   return (
-    <div>
+    <div className={classes.container}>
       <button
         disabled={isDisabled}
         onClick={onClick}
